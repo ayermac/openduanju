@@ -9,7 +9,7 @@
 
 **当前阶段：首版开发预览。** 本地存储下的业务流程与五服务 Docker 部署已验证；真实 SDK 视频获取和腾讯云 COS 集成尚未完成外部验证。项目不附带第三方作品视频、来源账号或存储凭据。
 
-[快速开始](#快速开始) · [界面预览](#界面预览) · [架构](docs/architecture.md) · [部署说明](deploy/README.md) · [开发与测试](docs/development.md) · [已知限制](docs/known-limitations.md)
+[快速开始](#快速开始) · [架构](docs/architecture.md) · [部署说明](deploy/README.md) · [开发与测试](docs/development.md) · [已知限制](docs/known-limitations.md)
 
 ## 能做什么
 
@@ -26,27 +26,6 @@
 | 审计与排查 | 关键写入与成功审计同事务，失败留痕；请求、错误和异步任务通过 trace 编号关联；签名媒体路径日志脱敏 |
 
 元数据采集与视频获取是两条独立能力：**Web 适配器负责目录和分集身份，SDK 适配器只负责后台视频取源。** 游客播放已处理、已审核的自有存储素材，不在播放请求中访问来源 SDK。
-
-## 界面预览
-
-以下截图来自隔离环境的实际运行页面。带「【样例】」的作品、封面与视频均为验收素材，不代表真实内容库或在线演示服务。
-
-### C 端首页
-
-![C 端首页，包含三部标记为样例的作品](docs/images/web-home.png)
-
-### 运营后台
-
-![运营后台内容列表，展示样例作品和修订状态](docs/images/admin-content.png)
-
-<details>
-<summary>查看登录页与移动端播放页</summary>
-
-![运营后台登录页](docs/images/admin-login.png)
-
-<img src="docs/images/web-player-mobile.png" alt="移动端播放页，播放生成的测试视频" width="375" />
-
-</details>
 
 ## 业务流程
 
