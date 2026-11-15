@@ -1,0 +1,104 @@
+server:
+  http:
+    addr: 0.0.0.0:8000
+    timeout: 1s
+  grpc:
+    addr: 0.0.0.0:9000
+    timeout: 1s
+data:
+  database:
+    driver: mysql
+    source: ${DATABASE_SOURCE}
+    # When set, the server refuses to start unless the DSN selects this
+    # database. It catches an inherited or mistyped DSN before any write.
+    expected_name: ${DATABASE_EXPECTED_NAME:}
+    # Development conveniences. Keep both false in production and apply schema
+    # changes as a separate reviewed step.
+    # Booleans are not env-substituted by the Kratos file source; production
+    # supplies a reviewed config where both are false.
+    debug: true
+    auto_migrate: false
+  redis:
+    addr: ${REDIS_ADDR:127.0.0.1:16380}
+    read_timeout: 0.2s
+    write_timeout: 0.2s
+# Single-episode media pipeline. Public defaults only; credentials and device
+# profiles are injected through the environment and stay out of Git.
+source:
+  hongguo:
+    # Public web origin for rankings/detail; metadata only, never playback.
+    origin: ${HONGGUO_WEB_ORIGIN:https://hongguoduanju.com}
+    timeout: ${SOURCE_FETCH_TIMEOUT:20s}
+    max_bytes: 8388608
+    user_agent: ${SOURCE_USER_AGENT:}
+  worker:
+    poll_interval: 2s
+    lease: 90s
+    page_interval: 1s
+    detail_interval: 0.3s
+  scheduler:
+    # Cron plans are polled for due slots; a due slot never fires twice because
+    # the stored fire time is advanced with a compare-and-set.
+    poll_interval: ${SOURCE_SCHEDULER_POLL_INTERVAL:10s}
+    batch_size: ${SOURCE_SCHEDULER_BATCH_SIZE:20}
+
+# Placeholders below are resolved from the configuration tree, and the only
+# environment source is the KRATOS_ prefix. Inject a value as KRATOS_<NAME>:
+# KRATOS_MEDIA_TEMP_DIR sets MEDIA_TEMP_DIR, KRATOS_COS_BUCKET sets COS_BUCKET.
+# A variable without the prefix (for example MEDIA_TEMP_DIR) is ignored and the
+# default is used.
+media:
+  # The lifetime of a public playback credential. A short value keeps the
+  # refresh path exercised; the player restores position, pause and speed.
+  playback_ticket_ttl: ${MEDIA_PLAYBACK_TICKET_TTL:10m}
+  temp_dir: ${MEDIA_TEMP_DIR:./var/media}
+  profile_version: ${MEDIA_PROFILE_VERSION:web-mp4-h264-aac-v1}
+  max_output_bytes: 2147483648
+  processor:
+    ffmpeg_path: ${MEDIA_FFMPEG_PATH:ffmpeg}
+    ffprobe_path: ${MEDIA_FFPROBE_PATH:ffprobe}
+    preset: ${MEDIA_X264_PRESET:veryfast}
+    crf: ${MEDIA_X264_CRF:20}
+    audio_bitrate: ${MEDIA_AUDIO_BITRATE:128k}
+    timeout: ${MEDIA_PROCESS_TIMEOUT:600s}
+  storage:
+    driver: ${MEDIA_STORAGE_DRIVER:cos}
+    sign_ttl: ${MEDIA_SIGN_TTL:600s}
+    # Local driver: a development/acceptance backend with immutable object
+    # versions and signed staging, preview and playback endpoints. Production
+    # storage and deployment need their own validation; COS is an alternative.
+    #
+    # Placeholders are resolved from the configuration tree, not from the
+    # process environment: inject them as KRATOS_<PLACEHOLDER>, for example
+    # KRATOS_MEDIA_STORAGE_LOCAL_ROOT. A plain MEDIA_STORAGE_LOCAL_ROOT has no
+    # effect and the default is used.
+    local:
+      root: ${MEDIA_STORAGE_LOCAL_ROOT:./var/media-objects}
+      prefix: ${MEDIA_STORAGE_LOCAL_PREFIX:openduanju-media}
+    cos:
+      bucket: ${COS_BUCKET:}
+      region: ${COS_REGION:}
+      secret_id: ${COS_SECRET_ID:}
+      secret_key: ${COS_SECRET_KEY:}
+      session_token: ${COS_SESSION_TOKEN:}
+      prefix: ${COS_PREFIX:openduanju-media-dev}
+  resolver:
+    # "command" accepts an operator-supplied authorized bridge; "hongguo_sdk"
+    # uses the locked Go adapter. Neither stores credentials in the repository.
+    driver: ${MEDIA_RESOLVER_DRIVER:command}
+    command: ${MEDIA_RESOLVER_COMMAND:}
+    quality: ${MEDIA_RESOLVER_QUALITY:best}
+    profile_path: ${HONGGUO_PROFILE_PATH:./var/hongguo/anonymous.json}
+    timeout: ${MEDIA_RESOLVE_TIMEOUT:30s}
+  download:
+    timeout: ${MEDIA_DOWNLOAD_TIMEOUT:300s}
+    max_bytes: 4294967296
+
+admin:
+  # The shared bearer token is retired: admin calls authenticate with a staff
+  # session cookie. This value is only kept so an old environment still loads.
+  auth_token: ${ADMIN_AUTH_TOKEN:}
+  # Enable behind HTTPS. It is a literal because the config resolver returns
+  # strings and a bool field cannot take a placeholder; override the file or
+  # pass KRATOS_ADMIN_SECURE_COOKIE with a config source that converts types.
+  secure_cookie: false

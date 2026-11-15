@@ -1,0 +1,3699 @@
+# Generated with protoc-gen-openapi
+# https://github.com/google/gnostic/tree/master/cmd/protoc-gen-openapi
+
+openapi: 3.0.3
+info:
+    title: ""
+    version: 0.0.1
+paths:
+    /api/admin/v1/audit:
+        get:
+            tags:
+                - AdminAuditService
+            operationId: AdminAuditService_ListAuditEvents
+            parameters:
+                - name: page
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+                - name: pageSize
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+                - name: resourceType
+                  in: query
+                  schema:
+                    type: string
+                - name: resourceId
+                  in: query
+                  schema:
+                    type: string
+                - name: action
+                  in: query
+                  schema:
+                    type: string
+                - name: actorId
+                  in: query
+                  schema:
+                    type: string
+                - name: traceId
+                  in: query
+                  schema:
+                    type: string
+                - name: actorName
+                  in: query
+                  description: |-
+                    actor_name matches the operator by the name recorded in the row, which
+                     is the name an operator knows.
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/admin.v1.AuditEventSet'
+    /api/admin/v1/auth/login:
+        post:
+            tags:
+                - AdminAuthService
+            operationId: AdminAuthService_Login
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/admin.v1.LoginRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/admin.v1.AdminSessionView'
+    /api/admin/v1/auth/logout:
+        post:
+            tags:
+                - AdminAuthService
+            operationId: AdminAuthService_Logout
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/admin.v1.LogoutRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content: {}
+    /api/admin/v1/auth/me:
+        get:
+            tags:
+                - AdminAuthService
+            operationId: AdminAuthService_GetMe
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/admin.v1.AdminSessionView'
+    /api/admin/v1/authorization-grants:
+        get:
+            tags:
+                - AdminAuthorizationService
+            operationId: AdminAuthorizationService_ListGrants
+            parameters:
+                - name: seriesId
+                  in: query
+                  schema:
+                    type: string
+                - name: status
+                  in: query
+                  schema:
+                    type: string
+                - name: page
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+                - name: pageSize
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/admin.v1.AuthorizationGrantSet'
+    /api/admin/v1/authorization-grants/{id}:
+        get:
+            tags:
+                - AdminAuthorizationService
+            operationId: AdminAuthorizationService_GetGrant
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/admin.v1.AuthorizationGrant'
+    /api/admin/v1/authorization-grants/{id}/revoke:
+        post:
+            tags:
+                - AdminAuthorizationService
+            operationId: AdminAuthorizationService_RevokeGrant
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/admin.v1.RevokeGrantRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/admin.v1.AuthorizationGrant'
+    /api/admin/v1/candidates:
+        get:
+            tags:
+                - AdminCandidateService
+            operationId: AdminCandidateService_ListCandidates
+            parameters:
+                - name: page
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+                - name: pageSize
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+                - name: q
+                  in: query
+                  schema:
+                    type: string
+                - name: sourceCode
+                  in: query
+                  schema:
+                    type: string
+                - name: completeness
+                  in: query
+                  schema:
+                    type: string
+                - name: imported
+                  in: query
+                  schema:
+                    type: boolean
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/admin.v1.CandidateSet'
+    /api/admin/v1/candidates/{id}:
+        get:
+            tags:
+                - AdminCandidateService
+            operationId: AdminCandidateService_GetCandidate
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/admin.v1.CandidateDetail'
+    /api/admin/v1/candidates/{id}/episodes:
+        get:
+            tags:
+                - AdminCandidateService
+            operationId: AdminCandidateService_ListCandidateEpisodes
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/admin.v1.SourceEpisodeSet'
+    /api/admin/v1/ingestion/entries:
+        get:
+            tags:
+                - AdminCandidateService
+            operationId: AdminCandidateService_ListSourceEntries
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/admin.v1.SourceEntrySet'
+    /api/admin/v1/ingestion/plans:
+        get:
+            tags:
+                - AdminIngestionService
+            operationId: AdminIngestionService_ListPlans
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/admin.v1.PlanSet'
+        post:
+            tags:
+                - AdminIngestionService
+            operationId: AdminIngestionService_CreatePlan
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/admin.v1.CreatePlanRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/admin.v1.Plan'
+    /api/admin/v1/ingestion/plans/{id}:
+        patch:
+            tags:
+                - AdminIngestionService
+            operationId: AdminIngestionService_UpdatePlan
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/admin.v1.UpdatePlanRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/admin.v1.Plan'
+    /api/admin/v1/ingestion/plans/{id}/runs:
+        post:
+            tags:
+                - AdminIngestionService
+            operationId: AdminIngestionService_TriggerPlan
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/admin.v1.TriggerPlanRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/admin.v1.Run'
+    /api/admin/v1/ingestion/runs:
+        get:
+            tags:
+                - AdminIngestionService
+            operationId: AdminIngestionService_ListRuns
+            parameters:
+                - name: planId
+                  in: query
+                  schema:
+                    type: string
+                - name: status
+                  in: query
+                  schema:
+                    type: string
+                - name: page
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+                - name: pageSize
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/admin.v1.RunSet'
+    /api/admin/v1/ingestion/runs/{id}:
+        get:
+            tags:
+                - AdminIngestionService
+            operationId: AdminIngestionService_GetRun
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/admin.v1.Run'
+    /api/admin/v1/ingestion/runs/{id}/cancel:
+        post:
+            tags:
+                - AdminIngestionService
+            operationId: AdminIngestionService_CancelRun
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/admin.v1.CancelRunRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/admin.v1.Run'
+    /api/admin/v1/ingestion/runs/{id}/candidates:
+        get:
+            tags:
+                - AdminCandidateService
+            operationId: AdminCandidateService_ListRunCandidates
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+                - name: page
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+                - name: pageSize
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/admin.v1.CandidateSet'
+    /api/admin/v1/ingestion/runs/{id}/items:
+        get:
+            tags:
+                - AdminCandidateService
+            operationId: AdminCandidateService_ListRunItems
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+                - name: page
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+                - name: pageSize
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/admin.v1.RunItemSet'
+    /api/admin/v1/ingestion/runs/{id}/retry:
+        post:
+            tags:
+                - AdminIngestionService
+            operationId: AdminIngestionService_RetryRun
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/admin.v1.RetryRunRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/admin.v1.Run'
+    /api/admin/v1/media-batches:
+        get:
+            tags:
+                - AdminMediaService
+            operationId: AdminMediaService_ListBatches
+            parameters:
+                - name: page
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+                - name: pageSize
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+                - name: seriesId
+                  in: query
+                  schema:
+                    type: string
+                - name: revisionId
+                  in: query
+                  schema:
+                    type: string
+                - name: status
+                  in: query
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/admin.v1.MediaBatchSet'
+    /api/admin/v1/media-batches/{id}:
+        get:
+            tags:
+                - AdminMediaService
+            operationId: AdminMediaService_GetBatch
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/admin.v1.MediaBatchDetail'
+    /api/admin/v1/media-batches/{id}/cancel:
+        post:
+            tags:
+                - AdminMediaService
+            operationId: AdminMediaService_CancelBatch
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/admin.v1.CancelMediaBatchRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/admin.v1.MediaBatch'
+    /api/admin/v1/media-batches/{id}/items:
+        get:
+            tags:
+                - AdminMediaService
+            operationId: AdminMediaService_ListItems
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+                - name: page
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+                - name: pageSize
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+                - name: status
+                  in: query
+                  schema:
+                    type: string
+                - name: stage
+                  in: query
+                  description: 'stage filters the same field as status: a task is always in one stage.'
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/admin.v1.MediaItemSet'
+    /api/admin/v1/media-batches/{id}/retry:
+        post:
+            tags:
+                - AdminMediaService
+            operationId: AdminMediaService_RetryFailures
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/admin.v1.RetryMediaBatchRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/admin.v1.MediaBatch'
+    /api/admin/v1/reviews:
+        get:
+            tags:
+                - AdminReviewService
+            operationId: AdminReviewService_ListReviews
+            parameters:
+                - name: status
+                  in: query
+                  schema:
+                    type: string
+                - name: page
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+                - name: pageSize
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/admin.v1.ReviewCaseSet'
+    /api/admin/v1/reviews/{id}:
+        get:
+            tags:
+                - AdminReviewService
+            operationId: AdminReviewService_GetReview
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/admin.v1.ReviewDetail'
+    /api/admin/v1/reviews/{id}/claim:
+        post:
+            tags:
+                - AdminReviewService
+            operationId: AdminReviewService_ClaimReview
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/admin.v1.ClaimReviewRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/admin.v1.ReviewCase'
+    /api/admin/v1/reviews/{id}/decision:
+        post:
+            tags:
+                - AdminReviewService
+            operationId: AdminReviewService_DecideReview
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/admin.v1.DecideReviewRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/admin.v1.ReviewCase'
+    /api/admin/v1/revisions/{id}/episodes:
+        get:
+            tags:
+                - AdminContentService
+            operationId: AdminContentService_ListRevisionEpisodes
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+                - name: page
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+                - name: pageSize
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/admin.v1.RevisionEpisodeSet'
+    /api/admin/v1/revisions/{id}/media-batches:
+        post:
+            tags:
+                - AdminMediaService
+            operationId: AdminMediaService_SubmitRevision
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/admin.v1.SubmitMediaBatchRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/admin.v1.MediaBatch'
+    /api/admin/v1/revisions/{id}/selection:
+        put:
+            tags:
+                - AdminContentService
+            operationId: AdminContentService_SetSelection
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/admin.v1.SetSelectionRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/admin.v1.RevisionSelection'
+    /api/admin/v1/runtime:
+        get:
+            tags:
+                - AdminRuntimeService
+            operationId: AdminRuntimeService_GetRuntimeInfo
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/admin.v1.RuntimeInfo'
+    /api/admin/v1/series:
+        get:
+            tags:
+                - AdminContentService
+            operationId: AdminContentService_ListSeries
+            parameters:
+                - name: q
+                  in: query
+                  schema:
+                    type: string
+                - name: status
+                  in: query
+                  schema:
+                    type: string
+                - name: page
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+                - name: pageSize
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/admin.v1.SeriesSet'
+        post:
+            tags:
+                - AdminContentService
+            operationId: AdminContentService_CreateSeries
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/admin.v1.CreateSeriesRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/admin.v1.SeriesDetail'
+    /api/admin/v1/series/{id}:
+        get:
+            tags:
+                - AdminContentService
+            operationId: AdminContentService_GetSeries
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/admin.v1.SeriesDetail'
+    /api/admin/v1/series/{id}/authorization-grants:
+        post:
+            tags:
+                - AdminAuthorizationService
+            operationId: AdminAuthorizationService_CreateGrant
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/admin.v1.CreateGrantRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/admin.v1.AuthorizationGrant'
+    /api/admin/v1/series/{id}/publication:
+        get:
+            tags:
+                - AdminReviewService
+            operationId: AdminReviewService_GetPublication
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/admin.v1.Publication'
+    /api/admin/v1/series/{id}/publications:
+        post:
+            tags:
+                - AdminReviewService
+            operationId: AdminReviewService_PublishRevision
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/admin.v1.PublishRevisionRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/admin.v1.Publication'
+    /api/admin/v1/series/{id}/publications/unpublish:
+        post:
+            tags:
+                - AdminReviewService
+            operationId: AdminReviewService_UnpublishSeries
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/admin.v1.UnpublishSeriesRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/admin.v1.Publication'
+    /api/admin/v1/series/{id}/revisions:
+        post:
+            tags:
+                - AdminContentService
+            operationId: AdminContentService_CreateRevision
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/admin.v1.CreateRevisionRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/admin.v1.SeriesDetail'
+    /api/admin/v1/series/{id}/revisions/{revisionId}:
+        patch:
+            tags:
+                - AdminContentService
+            operationId: AdminContentService_UpdateRevision
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+                - name: revisionId
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/admin.v1.UpdateRevisionRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/admin.v1.SeriesDetail'
+    /api/admin/v1/source-channels:
+        get:
+            tags:
+                - AdminSourceService
+            operationId: AdminSourceService_ListChannels
+            parameters:
+                - name: sourceId
+                  in: query
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/admin.v1.ChannelSet'
+    /api/admin/v1/source-channels/{id}:
+        get:
+            tags:
+                - AdminSourceService
+            operationId: AdminSourceService_GetChannel
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/admin.v1.Channel'
+        patch:
+            tags:
+                - AdminSourceService
+            operationId: AdminSourceService_UpdateChannel
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/admin.v1.UpdateChannelRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/admin.v1.Channel'
+    /api/admin/v1/source-channels/{id}/probe:
+        post:
+            tags:
+                - AdminSourceService
+            operationId: AdminSourceService_TestChannel
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/admin.v1.TestChannelRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/admin.v1.ChannelProbe'
+    /api/admin/v1/source-channels/{id}/status:
+        post:
+            tags:
+                - AdminSourceService
+            operationId: AdminSourceService_SetChannelStatus
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/admin.v1.SetChannelStatusRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/admin.v1.Channel'
+    /api/admin/v1/sources:
+        get:
+            tags:
+                - AdminSourceService
+            operationId: AdminSourceService_ListSources
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/admin.v1.SourceSet'
+    /api/admin/v1/sources/{id}:
+        patch:
+            tags:
+                - AdminSourceService
+            operationId: AdminSourceService_UpdateSource
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/admin.v1.UpdateSourceRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/admin.v1.Source'
+    /api/admin/v1/staff:
+        get:
+            tags:
+                - AdminStaffService
+            operationId: AdminStaffService_ListStaff
+            parameters:
+                - name: page
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+                - name: pageSize
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+                - name: role
+                  in: query
+                  schema:
+                    type: string
+                - name: q
+                  in: query
+                  schema:
+                    type: string
+                - name: enabled
+                  in: query
+                  schema:
+                    type: boolean
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/admin.v1.StaffSet'
+        post:
+            tags:
+                - AdminStaffService
+            operationId: AdminStaffService_CreateStaff
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/admin.v1.CreateStaffRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/admin.v1.Staff'
+    /api/admin/v1/staff/{id}:
+        patch:
+            tags:
+                - AdminStaffService
+            operationId: AdminStaffService_UpdateStaff
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/admin.v1.UpdateStaffRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/admin.v1.Staff'
+    /api/admin/v1/staff/{id}/reset-password:
+        post:
+            tags:
+                - AdminStaffService
+            operationId: AdminStaffService_ResetPassword
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/admin.v1.ResetStaffPasswordRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/admin.v1.Staff'
+    /api/admin/v1/uploads:
+        get:
+            tags:
+                - AdminUploadService
+            operationId: AdminUploadService_ListUploads
+            parameters:
+                - name: revisionId
+                  in: query
+                  schema:
+                    type: string
+                - name: kind
+                  in: query
+                  schema:
+                    type: string
+                - name: status
+                  in: query
+                  schema:
+                    type: string
+                - name: page
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+                - name: pageSize
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/admin.v1.UploadSessionSet'
+        post:
+            tags:
+                - AdminUploadService
+            operationId: AdminUploadService_CreateUpload
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/admin.v1.CreateUploadRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/admin.v1.UploadSession'
+    /api/admin/v1/uploads/{id}:
+        get:
+            tags:
+                - AdminUploadService
+            operationId: AdminUploadService_GetUpload
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/admin.v1.UploadSession'
+    /api/admin/v1/uploads/{id}/cancel:
+        post:
+            tags:
+                - AdminUploadService
+            operationId: AdminUploadService_CancelUpload
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/admin.v1.CancelUploadRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/admin.v1.UploadSession'
+    /api/admin/v1/uploads/{id}/complete:
+        post:
+            tags:
+                - AdminUploadService
+            operationId: AdminUploadService_CompleteUpload
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/admin.v1.CompleteUploadRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/admin.v1.UploadSession'
+    /api/admin/v1/uploads/{id}/renew:
+        post:
+            tags:
+                - AdminUploadService
+            operationId: AdminUploadService_RenewUpload
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/admin.v1.RenewUploadRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/admin.v1.UploadSession'
+    /api/web/v1/categories:
+        get:
+            tags:
+                - WebService
+            description: |-
+                ListCategories names the categories that have at least one displayable
+                 published series. It reads the same public projection and the same
+                 dynamic gate as the list, so a category never outlives its content.
+            operationId: WebService_ListCategories
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/web.v1.CategorySet'
+    /api/web/v1/home:
+        get:
+            tags:
+                - WebService
+            operationId: WebService_Home
+            parameters:
+                - name: limit
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/web.v1.SeriesSet'
+    /api/web/v1/playback-sessions:
+        post:
+            tags:
+                - WebService
+            operationId: WebService_OpenPlayback
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/web.v1.OpenPlaybackRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/web.v1.PlaybackTicket'
+    /api/web/v1/playback-sessions/refresh:
+        post:
+            tags:
+                - WebService
+            operationId: WebService_RefreshPlayback
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/web.v1.RefreshPlaybackRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/web.v1.PlaybackTicket'
+    /api/web/v1/series:
+        get:
+            tags:
+                - WebService
+            operationId: WebService_ListSeries
+            parameters:
+                - name: q
+                  in: query
+                  schema:
+                    type: string
+                - name: category
+                  in: query
+                  schema:
+                    type: string
+                - name: page
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+                - name: pageSize
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/web.v1.SeriesSet'
+    /api/web/v1/series/{id}:
+        get:
+            tags:
+                - WebService
+            operationId: WebService_GetSeries
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/web.v1.SeriesDetail'
+    /v1/todos/create:
+        post:
+            tags:
+                - TodoService
+            description: |-
+                CreateTodo creates a new todo item and returns the persisted record
+                 with the server-assigned id, created_at, and updated_at populated.
+                 Returns INVALID_ARGUMENT if the request payload fails validation.
+            operationId: TodoService_CreateTodo
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/todo.v1.Todo'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/todo.v1.Todo'
+    /v1/todos/list:
+        get:
+            tags:
+                - TodoService
+            description: |-
+                ListTodos returns a page of todo items, optionally filtered and ordered.
+                 Use the next_page_token from TodoSet to retrieve subsequent pages.
+                 Returns INVALID_ARGUMENT if filter, order_by, or page_token are malformed.
+            operationId: TodoService_ListTodos
+            parameters:
+                - name: pageSize
+                  in: query
+                  description: |-
+                    Optional. Maximum number of todo items to return in a single page.
+                     The server may apply a default and a maximum when unset or out of range.
+                  schema:
+                    type: integer
+                    format: int32
+                - name: pageToken
+                  in: query
+                  description: |-
+                    Optional. Token from a previous response's next_page_token used to fetch
+                     the next page. Leave empty to request the first page.
+                  schema:
+                    type: string
+                - name: filter
+                  in: query
+                  description: |-
+                    Optional. The standard list filter.
+                     Supported fields:
+                        * `title` (i.e. `title:"bug"`)
+                        * `content` (i.e. `content:"docs"`)
+                        * `completed` (i.e. `completed` or `NOT completed`)
+                        * `created_at` range (i.e. `created_at>="2026-01-01T00:00:00Z"`)
+                  schema:
+                    type: string
+                - name: orderBy
+                  in: query
+                  description: |-
+                    Optional. A comma-separated list of fields to order by.
+                     Supported fields:
+                        * `id`
+                        * `title`
+                        * `created_at`
+                        * `updated_at`
+                     Append ` desc` to a field for descending order, e.g. `created_at desc`.
+                     Defaults to ascending order when no direction is supplied.
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/todo.v1.TodoSet'
+    /v1/todos/sync:
+        post:
+            tags:
+                - TodoService
+            description: |-
+                SyncTodos opens a bidirectional stream for two-way synchronization.
+                 The client sends SyncTodoRequest messages describing local changes, and
+                 the server pushes back TodoEvent messages reflecting the resulting state.
+                 The stream stays open until either side closes it.
+            operationId: TodoService_SyncTodos
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/todo.v1.SyncTodoRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/todo.v1.TodoEvent'
+    /v1/todos/update:
+        put:
+            tags:
+                - TodoService
+            description: |-
+                UpdateTodo applies a partial update to an existing todo item using a
+                 FieldMask. Only the fields listed in update_mask are overwritten; all
+                 other fields are left unchanged.
+                 Returns NOT_FOUND if the target todo does not exist, or
+                 INVALID_ARGUMENT if update_mask references unknown fields.
+            operationId: TodoService_UpdateTodo
+            parameters:
+                - name: updateMask
+                  in: query
+                  description: |-
+                    Set of field paths in todo to overwrite. Fields not listed are left
+                     unchanged. Use a single path of `*` to replace every mutable field.
+                  schema:
+                    type: string
+                    format: field-mask
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/todo.v1.Todo'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/todo.v1.Todo'
+    /v1/todos/watch:
+        get:
+            tags:
+                - TodoService
+            description: |-
+                WatchTodos opens a server-side stream that emits a TodoEvent for every
+                 create, update, or delete that matches the supplied filter and ordering.
+                 The stream remains open until the client cancels or the server terminates it.
+            operationId: TodoService_WatchTodos
+            parameters:
+                - name: pageSize
+                  in: query
+                  description: |-
+                    Optional. Maximum number of todo items returned in the initial snapshot
+                     before live events begin streaming.
+                  schema:
+                    type: integer
+                    format: int32
+                - name: pageToken
+                  in: query
+                  description: Optional. Page token used to resume from a prior snapshot.
+                  schema:
+                    type: string
+                - name: filter
+                  in: query
+                  description: Optional. List filter expression. Same syntax as ListTodosRequest.filter.
+                  schema:
+                    type: string
+                - name: orderBy
+                  in: query
+                  description: Optional. Order specification. Same syntax as ListTodosRequest.order_by.
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/todo.v1.TodoEvent'
+    /v1/todos/{id}:
+        get:
+            tags:
+                - TodoService
+            description: |-
+                GetTodo returns a single todo item by its id.
+                 Returns NOT_FOUND if no todo exists with the supplied id.
+            operationId: TodoService_GetTodo
+            parameters:
+                - name: id
+                  in: path
+                  description: Unique identifier of the todo item to retrieve.
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/todo.v1.Todo'
+        delete:
+            tags:
+                - TodoService
+            description: |-
+                DeleteTodo soft-deletes a todo item by its id. The record is retained by
+                 the server but no longer appears in GetTodo or ListTodos results.
+                 Returns NOT_FOUND if no todo exists with the supplied id.
+            operationId: TodoService_DeleteTodo
+            parameters:
+                - name: id
+                  in: path
+                  description: Unique identifier of the todo item to delete.
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content: {}
+components:
+    schemas:
+        admin.v1.AdminSessionView:
+            type: object
+            properties:
+                staff:
+                    $ref: '#/components/schemas/admin.v1.Staff'
+                permissions:
+                    type: array
+                    items:
+                        type: string
+                csrfToken:
+                    type: string
+                expiresAt:
+                    type: string
+            description: AdminSessionView is the authenticated session of the caller.
+        admin.v1.AuditEvent:
+            type: object
+            properties:
+                id:
+                    type: string
+                traceId:
+                    type: string
+                    description: |-
+                        trace_id is the identity of the request; it also appears in the error
+                         report of the same operation.
+                actorId:
+                    type: string
+                actorName:
+                    type: string
+                action:
+                    type: string
+                resourceType:
+                    type: string
+                resourceId:
+                    type: string
+                resourceVersion:
+                    type: integer
+                    format: int32
+                result:
+                    type: string
+                    description: result is success or failure.
+                reason:
+                    type: string
+                    description: reason is the stable failure reason of the operation.
+                createdAt:
+                    type: string
+            description: AuditEvent is one recorded write.
+        admin.v1.AuditEventSet:
+            type: object
+            properties:
+                items:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/admin.v1.AuditEvent'
+                total:
+                    type: integer
+                    format: int32
+                page:
+                    type: integer
+                    format: int32
+                pageSize:
+                    type: integer
+                    format: int32
+        admin.v1.AuthorizationGrant:
+            type: object
+            properties:
+                id:
+                    type: string
+                seriesId:
+                    type: string
+                reference:
+                    type: string
+                allowProcess:
+                    type: boolean
+                allowDisplay:
+                    type: boolean
+                allowPlayback:
+                    type: boolean
+                validFrom:
+                    type: string
+                validUntil:
+                    type: string
+                    description: |-
+                        valid_until is empty when the system has no end date; it is not a claim
+                         of a perpetual license.
+                status:
+                    type: string
+                version:
+                    type: integer
+                    format: int32
+                confirmedBy:
+                    type: string
+                confirmedAt:
+                    type: string
+                revokedBy:
+                    type: string
+                revokedAt:
+                    type: string
+                revokeReason:
+                    type: string
+                createdAt:
+                    type: string
+                updatedAt:
+                    type: string
+            description: AuthorizationGrant is one series-level authorization record.
+        admin.v1.AuthorizationGrantSet:
+            type: object
+            properties:
+                total:
+                    type: integer
+                    format: int32
+                page:
+                    type: integer
+                    format: int32
+                pageSize:
+                    type: integer
+                    format: int32
+                items:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/admin.v1.AuthorizationGrant'
+            description: AuthorizationGrantSet is a page of grants.
+        admin.v1.CancelMediaBatchRequest:
+            required:
+                - id
+                - expectedVersion
+                - reason
+            type: object
+            properties:
+                id:
+                    type: string
+                expectedVersion:
+                    type: integer
+                    format: int32
+                reason:
+                    type: string
+            description: CancelMediaBatchRequest cancels a running batch.
+        admin.v1.CancelRunRequest:
+            required:
+                - id
+                - expectedVersion
+            type: object
+            properties:
+                id:
+                    type: string
+                expectedVersion:
+                    type: integer
+                    format: int32
+        admin.v1.CancelUploadRequest:
+            required:
+                - id
+                - expectedVersion
+            type: object
+            properties:
+                id:
+                    type: string
+                expectedVersion:
+                    type: integer
+                    format: int32
+            description: CancelUploadRequest releases a pending session.
+        admin.v1.Candidate:
+            type: object
+            properties:
+                id:
+                    type: string
+                sourceCode:
+                    type: string
+                channel:
+                    type: string
+                externalId:
+                    type: string
+                title:
+                    type: string
+                coverUrl:
+                    type: string
+                description:
+                    type: string
+                tags:
+                    type: array
+                    items:
+                        type: string
+                episodeCount:
+                    type: integer
+                    format: int32
+                openEpisodeCount:
+                    type: integer
+                    format: int32
+                rank:
+                    type: integer
+                    format: int32
+                metrics:
+                    type: object
+                    additionalProperties:
+                        type: string
+                contentHash:
+                    type: string
+                completeness:
+                    type: string
+                detailFetchedAt:
+                    type: string
+                episodesFetchedAt:
+                    type: string
+                seriesId:
+                    type: string
+                firstSeenAt:
+                    type: string
+                lastSeenAt:
+                    type: string
+        admin.v1.CandidateDetail:
+            type: object
+            properties:
+                candidate:
+                    $ref: '#/components/schemas/admin.v1.Candidate'
+                episodes:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/admin.v1.SourceEpisode'
+        admin.v1.CandidateSet:
+            type: object
+            properties:
+                items:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/admin.v1.Candidate'
+                total:
+                    type: integer
+                    format: int32
+                page:
+                    type: integer
+                    format: int32
+                pageSize:
+                    type: integer
+                    format: int32
+        admin.v1.Channel:
+            type: object
+            properties:
+                id:
+                    type: string
+                sourceId:
+                    type: string
+                sourceCode:
+                    type: string
+                sourceName:
+                    type: string
+                sourceStatus:
+                    type: string
+                code:
+                    type: string
+                name:
+                    type: string
+                adapterKey:
+                    type: string
+                entryKind:
+                    type: string
+                entryCode:
+                    type: string
+                baseUrl:
+                    type: string
+                allowedHosts:
+                    type: string
+                ratePerMinute:
+                    type: integer
+                    format: int32
+                timeoutSeconds:
+                    type: integer
+                    format: int32
+                hasSecret:
+                    type: boolean
+                    description: |-
+                        has_secret reports whether a private reference is configured; the
+                         reference itself is never returned.
+                status:
+                    type: string
+                paused:
+                    type: boolean
+                    description: paused is true when the channel or its source is paused.
+                pausedCause:
+                    type: string
+                    description: paused_cause is channel or source.
+                version:
+                    type: integer
+                    format: int32
+                updatedAt:
+                    type: string
+            description: |-
+                Channel is one web entry of a source with the configuration that is really
+                 used by collection.
+        admin.v1.ChannelProbe:
+            type: object
+            properties:
+                ok:
+                    type: boolean
+                channel:
+                    type: string
+                latencyMs:
+                    type: string
+                items:
+                    type: integer
+                    format: int32
+                totalPages:
+                    type: integer
+                    format: int32
+                errorCode:
+                    type: string
+                errorMessage:
+                    type: string
+                probedAt:
+                    type: string
+            description: ChannelProbe is the result of one explicit connection test.
+        admin.v1.ChannelSet:
+            type: object
+            properties:
+                items:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/admin.v1.Channel'
+        admin.v1.ClaimReviewRequest:
+            required:
+                - id
+                - expectedVersion
+            type: object
+            properties:
+                id:
+                    type: string
+                expectedVersion:
+                    type: integer
+                    format: int32
+        admin.v1.CompleteUploadRequest:
+            required:
+                - id
+                - expectedVersion
+            type: object
+            properties:
+                id:
+                    type: string
+                expectedVersion:
+                    type: integer
+                    format: int32
+            description: CompleteUploadRequest confirms a stored staging object.
+        admin.v1.CreateGrantRequest:
+            required:
+                - id
+                - reference
+                - validFrom
+            type: object
+            properties:
+                id:
+                    type: string
+                reference:
+                    type: string
+                allowProcess:
+                    type: boolean
+                allowDisplay:
+                    type: boolean
+                allowPlayback:
+                    type: boolean
+                validFrom:
+                    type: string
+                validUntil:
+                    type: string
+            description: CreateGrantRequest opens one grant. Permission bits default to false.
+        admin.v1.CreatePlanRequest:
+            required:
+                - code
+                - name
+                - sourceCode
+                - channel
+                - pageStart
+                - pageEnd
+            type: object
+            properties:
+                code:
+                    type: string
+                name:
+                    type: string
+                sourceCode:
+                    type: string
+                channel:
+                    type: string
+                pageStart:
+                    type: integer
+                    format: int32
+                pageEnd:
+                    type: integer
+                    format: int32
+                requestBudget:
+                    type: integer
+                    format: int32
+                itemBudget:
+                    type: integer
+                    format: int32
+                fetchDetails:
+                    type: boolean
+                fetchEpisodes:
+                    type: boolean
+                enabled:
+                    type: boolean
+                ratePerMinute:
+                    type: integer
+                    format: int32
+                cron:
+                    type: string
+                timezone:
+                    type: string
+        admin.v1.CreateRevisionRequest:
+            required:
+                - id
+            type: object
+            properties:
+                id:
+                    type: string
+                baseRevisionId:
+                    type: string
+                replaceDraftRevisionId:
+                    type: string
+                replaceDraftVersion:
+                    type: integer
+                    description: replace_draft_version is the version of that draft the caller read.
+                    format: int32
+            description: |-
+                CreateRevisionRequest asks for a new working draft.
+
+                 base_revision_id is the revision the new draft inherits its metadata, its
+                 selection and its frozen material from. When the series already has a
+                 working draft, the request must name it in replace_draft_revision_id:
+                 the draft is then replaced by an explicit action, never silently.
+        admin.v1.CreateSeriesRequest:
+            required:
+                - mode
+            type: object
+            properties:
+                mode:
+                    type: string
+                sourceCode:
+                    type: string
+                candidateId:
+                    type: string
+                expectedCandidateHash:
+                    type: string
+                title:
+                    type: string
+                    description: |-
+                        title and description of a manual work. The title is required; the
+                         description may stay empty while the draft is edited.
+                description:
+                    type: string
+                episodes:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/admin.v1.ManualEpisode'
+                    description: |-
+                        episodes are the original episode numbers of a manual work. At least one
+                         is required, and a number may appear only once.
+                requestId:
+                    type: string
+                    description: |-
+                        request_id is the idempotency key of the creation form. The browser
+                         generates it when the form opens, so a double click or a retried request
+                         returns the series that was already created instead of a second one.
+            description: |-
+                CreateSeriesRequest opens a new local series with its first working draft.
+
+                 mode=source imports a collected candidate. mode=manual declares the work
+                 itself: a manual work has no source, no external identifier and no
+                 candidate, so it never pretends to come from a provider. Both modes enter
+                 the same draft, upload, processing, review and publication path.
+        admin.v1.CreateStaffRequest:
+            required:
+                - username
+                - role
+                - password
+            type: object
+            properties:
+                username:
+                    type: string
+                displayName:
+                    type: string
+                role:
+                    type: string
+                password:
+                    type: string
+            description: CreateStaffRequest adds one account.
+        admin.v1.CreateUploadRequest:
+            required:
+                - revisionId
+                - expectedRevisionVersion
+                - kind
+                - filename
+                - sizeBytes
+            type: object
+            properties:
+                revisionId:
+                    type: string
+                expectedRevisionVersion:
+                    type: integer
+                    format: int32
+                episodeId:
+                    type: string
+                    description: episode_id is required for kind=episode_input and must be empty for a cover.
+                kind:
+                    type: string
+                filename:
+                    type: string
+                sizeBytes:
+                    type: string
+                contentType:
+                    type: string
+                expectedSha256:
+                    type: string
+            description: CreateUploadRequest opens one staging session.
+        admin.v1.DecideReviewRequest:
+            required:
+                - id
+                - expectedVersion
+                - decision
+            type: object
+            properties:
+                id:
+                    type: string
+                expectedVersion:
+                    type: integer
+                    format: int32
+                decision:
+                    type: string
+                    description: approved or rejected.
+                reason:
+                    type: string
+                    description: Required for a rejection.
+                checklist:
+                    allOf:
+                        - $ref: '#/components/schemas/admin.v1.ReviewChecklist'
+                    description: 'Required for an approval: every item plus at least one loaded episode.'
+        admin.v1.LoginRequest:
+            required:
+                - username
+                - password
+            type: object
+            properties:
+                username:
+                    type: string
+                password:
+                    type: string
+            description: LoginRequest opens a session.
+        admin.v1.LogoutRequest:
+            type: object
+            properties: {}
+        admin.v1.ManualEpisode:
+            type: object
+            properties:
+                originalNumber:
+                    type: integer
+                    description: |-
+                        original_number is the number the operator uses for this episode; it is
+                         kept as written and never renumbered.
+                    format: int32
+            description: |-
+                ManualEpisode is one episode a manual work declares. The operator writes the
+                 original number; the work has no provider identity and no episode title of
+                 its own yet.
+        admin.v1.MediaBatch:
+            type: object
+            properties:
+                id:
+                    type: string
+                seriesId:
+                    type: string
+                revisionId:
+                    type: string
+                selectionHash:
+                    type: string
+                profileVersion:
+                    type: string
+                inputKind:
+                    type: string
+                status:
+                    type: string
+                coverStatus:
+                    type: string
+                itemTotal:
+                    type: integer
+                    format: int32
+                itemReady:
+                    type: integer
+                    format: int32
+                itemFailed:
+                    type: integer
+                    format: int32
+                cancelRequested:
+                    type: boolean
+                version:
+                    type: integer
+                    format: int32
+                errorCode:
+                    type: string
+                errorMessage:
+                    type: string
+                createdBy:
+                    type: string
+                reviewTaskId:
+                    type: string
+                createdAt:
+                    type: string
+                updatedAt:
+                    type: string
+            description: MediaBatch is one persistent processing run over a frozen revision.
+        admin.v1.MediaBatchDetail:
+            type: object
+            properties:
+                batch:
+                    $ref: '#/components/schemas/admin.v1.MediaBatch'
+                items:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/admin.v1.MediaItem'
+                itemTotal:
+                    type: integer
+                    format: int32
+            description: MediaBatchDetail bundles a batch with the first page of its items.
+        admin.v1.MediaBatchSet:
+            type: object
+            properties:
+                items:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/admin.v1.MediaBatch'
+                total:
+                    type: integer
+                    format: int32
+                page:
+                    type: integer
+                    format: int32
+                pageSize:
+                    type: integer
+                    format: int32
+            description: MediaBatchSet is a page of batches.
+        admin.v1.MediaItem:
+            type: object
+            properties:
+                id:
+                    type: string
+                batchId:
+                    type: string
+                episodeId:
+                    type: string
+                externalId:
+                    type: string
+                episodeNo:
+                    type: integer
+                    format: int32
+                status:
+                    type: string
+                attempt:
+                    type: integer
+                    format: int32
+                retryable:
+                    type: boolean
+                nextEligibleAt:
+                    type: string
+                errorCode:
+                    type: string
+                errorMessage:
+                    type: string
+                sha256:
+                    type: string
+                sizeBytes:
+                    type: string
+                codec:
+                    type: string
+                durationMs:
+                    type: string
+                width:
+                    type: integer
+                    format: int32
+                height:
+                    type: integer
+                    format: int32
+                assetId:
+                    type: string
+                createdAt:
+                    type: string
+                updatedAt:
+                    type: string
+            description: MediaItem is one episode task of a batch.
+        admin.v1.MediaItemSet:
+            type: object
+            properties:
+                items:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/admin.v1.MediaItem'
+                total:
+                    type: integer
+                    format: int32
+                page:
+                    type: integer
+                    format: int32
+                pageSize:
+                    type: integer
+                    format: int32
+            description: MediaItemSet is a page of items.
+        admin.v1.Plan:
+            type: object
+            properties:
+                id:
+                    type: string
+                code:
+                    type: string
+                name:
+                    type: string
+                sourceCode:
+                    type: string
+                channel:
+                    type: string
+                pageStart:
+                    type: integer
+                    format: int32
+                pageEnd:
+                    type: integer
+                    format: int32
+                requestBudget:
+                    type: integer
+                    format: int32
+                itemBudget:
+                    type: integer
+                    format: int32
+                fetchDetails:
+                    type: boolean
+                fetchEpisodes:
+                    type: boolean
+                enabled:
+                    type: boolean
+                version:
+                    type: integer
+                    format: int32
+                ratePerMinute:
+                    type: integer
+                    format: int32
+                cron:
+                    type: string
+                    description: cron is a 5-field cron expression; empty keeps the plan manual.
+                timezone:
+                    type: string
+                    description: timezone is the IANA zone the cron expression is evaluated in.
+                nextRunAt:
+                    type: string
+                    description: next_run_at is the next scheduled fire time in UTC.
+        admin.v1.PlanSet:
+            type: object
+            properties:
+                items:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/admin.v1.Plan'
+        admin.v1.Publication:
+            type: object
+            properties:
+                id:
+                    type: string
+                seriesId:
+                    type: string
+                revisionId:
+                    type: string
+                status:
+                    type: string
+                publishedBy:
+                    type: string
+                publishedAt:
+                    type: string
+                unpublishedBy:
+                    type: string
+                unpublishedAt:
+                    type: string
+                authorizationGrantId:
+                    type: string
+                authorizationVersion:
+                    type: integer
+                    format: int32
+                version:
+                    type: integer
+                    format: int32
+            description: Publication is the published revision of one series.
+        admin.v1.PublishRevisionRequest:
+            required:
+                - id
+                - revisionId
+            type: object
+            properties:
+                id:
+                    type: string
+                revisionId:
+                    type: string
+        admin.v1.RenewUploadRequest:
+            required:
+                - id
+                - expectedVersion
+            type: object
+            properties:
+                id:
+                    type: string
+                expectedVersion:
+                    type: integer
+                    format: int32
+            description: RenewUploadRequest signs the same staging key again.
+        admin.v1.ResetStaffPasswordRequest:
+            required:
+                - id
+                - expectedVersion
+                - newPassword
+            type: object
+            properties:
+                id:
+                    type: string
+                expectedVersion:
+                    type: integer
+                    format: int32
+                newPassword:
+                    type: string
+            description: ResetStaffPasswordRequest sets a new password and revokes old sessions.
+        admin.v1.RetryMediaBatchRequest:
+            required:
+                - id
+                - expectedVersion
+            type: object
+            properties:
+                id:
+                    type: string
+                expectedVersion:
+                    type: integer
+                    format: int32
+                itemIds:
+                    type: array
+                    items:
+                        type: string
+            description: RetryMediaBatchRequest requeues failed items of a batch.
+        admin.v1.RetryRunRequest:
+            required:
+                - id
+                - expectedVersion
+            type: object
+            properties:
+                id:
+                    type: string
+                expectedVersion:
+                    type: integer
+                    format: int32
+                additionalRequests:
+                    type: integer
+                    format: int32
+                additionalItems:
+                    type: integer
+                    format: int32
+                reason:
+                    type: string
+        admin.v1.ReviewAsset:
+            type: object
+            properties:
+                assetId:
+                    type: string
+                contentType:
+                    type: string
+                sizeBytes:
+                    type: string
+                durationMs:
+                    type: string
+                width:
+                    type: integer
+                    format: int32
+                height:
+                    type: integer
+                    format: int32
+                previewUrl:
+                    type: string
+                previewExpiresAt:
+                    type: string
+            description: ReviewAsset is one private material with a short-lived preview URL.
+        admin.v1.ReviewCase:
+            type: object
+            properties:
+                taskId:
+                    type: string
+                revisionId:
+                    type: string
+                seriesId:
+                    type: string
+                batchId:
+                    type: string
+                status:
+                    type: string
+                assignee:
+                    type: string
+                submittedBy:
+                    type: string
+                version:
+                    type: integer
+                    format: int32
+                createdAt:
+                    type: string
+                seriesTitle:
+                    type: string
+                itemTotal:
+                    type: integer
+                    format: int32
+                itemReady:
+                    type: integer
+                    format: int32
+                coverStatus:
+                    type: string
+            description: ReviewCase is one row of the worklist.
+        admin.v1.ReviewCaseSet:
+            type: object
+            properties:
+                total:
+                    type: integer
+                    format: int32
+                page:
+                    type: integer
+                    format: int32
+                pageSize:
+                    type: integer
+                    format: int32
+                items:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/admin.v1.ReviewCase'
+            description: ReviewCaseSet is a page of review tasks.
+        admin.v1.ReviewChecklist:
+            type: object
+            properties:
+                titleCoverIntro:
+                    type: boolean
+                episodeMapping:
+                    type: boolean
+                audioVideo:
+                    type: boolean
+                authorizationPublic:
+                    type: boolean
+                reviewedEpisodes:
+                    type: integer
+                    format: int32
+            description: ReviewChecklist is what a reviewer confirms before an approval.
+        admin.v1.ReviewDecision:
+            type: object
+            properties:
+                decision:
+                    type: string
+                reason:
+                    type: string
+                decidedBy:
+                    type: string
+                decidedAt:
+                    type: string
+                taskVersion:
+                    type: integer
+                    format: int32
+                authorizationGrantId:
+                    type: string
+                authorizationVersion:
+                    type: integer
+                    format: int32
+            description: ReviewDecision is the final outcome of a task.
+        admin.v1.ReviewDetail:
+            type: object
+            properties:
+                case:
+                    $ref: '#/components/schemas/admin.v1.ReviewCase'
+                episodes:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/admin.v1.ReviewEpisode'
+                cover:
+                    $ref: '#/components/schemas/admin.v1.ReviewAsset'
+                authorization:
+                    $ref: '#/components/schemas/admin.v1.AuthorizationGrant'
+                decision:
+                    $ref: '#/components/schemas/admin.v1.ReviewDecision'
+            description: ReviewDetail is the review screen payload.
+        admin.v1.ReviewEpisode:
+            type: object
+            properties:
+                episodeId:
+                    type: string
+                number:
+                    type: integer
+                    format: int32
+                externalId:
+                    type: string
+                asset:
+                    $ref: '#/components/schemas/admin.v1.ReviewAsset'
+            description: ReviewEpisode is one selected episode of the revision.
+        admin.v1.Revision:
+            type: object
+            properties:
+                id:
+                    type: string
+                seriesId:
+                    type: string
+                revisionNo:
+                    type: integer
+                    format: int32
+                state:
+                    type: string
+                version:
+                    type: integer
+                    format: int32
+                title:
+                    type: string
+                description:
+                    type: string
+                coverUrl:
+                    type: string
+                tags:
+                    type: array
+                    items:
+                        type: string
+                selectedCount:
+                    type: integer
+                    format: int32
+        admin.v1.RevisionEpisode:
+            type: object
+            properties:
+                externalId:
+                    type: string
+                number:
+                    type: integer
+                    format: int32
+                selected:
+                    type: boolean
+                id:
+                    type: string
+                    description: id is the revision episode a manual upload session binds to.
+        admin.v1.RevisionEpisodeSet:
+            type: object
+            properties:
+                items:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/admin.v1.RevisionEpisode'
+                total:
+                    type: integer
+                    format: int32
+        admin.v1.RevisionSelection:
+            type: object
+            properties:
+                revision:
+                    $ref: '#/components/schemas/admin.v1.Revision'
+                selectedCount:
+                    type: integer
+                    format: int32
+        admin.v1.RevokeGrantRequest:
+            required:
+                - id
+                - expectedVersion
+                - reason
+            type: object
+            properties:
+                id:
+                    type: string
+                expectedVersion:
+                    type: integer
+                    format: int32
+                reason:
+                    type: string
+            description: RevokeGrantRequest revokes a grant with a version CAS.
+        admin.v1.Run:
+            type: object
+            properties:
+                id:
+                    type: string
+                planId:
+                    type: string
+                kind:
+                    type: string
+                candidateId:
+                    type: string
+                sourceCode:
+                    type: string
+                channel:
+                    type: string
+                pageStart:
+                    type: integer
+                    format: int32
+                pageEnd:
+                    type: integer
+                    format: int32
+                status:
+                    type: string
+                requestBudget:
+                    type: integer
+                    format: int32
+                itemBudget:
+                    type: integer
+                    format: int32
+                requestsUsed:
+                    type: integer
+                    format: int32
+                pageCursor:
+                    type: integer
+                    format: int32
+                pagesFetched:
+                    type: integer
+                    format: int32
+                itemsSeen:
+                    type: integer
+                    format: int32
+                itemsUpserted:
+                    type: integer
+                    format: int32
+                detailFetched:
+                    type: integer
+                    format: int32
+                episodesFetched:
+                    type: integer
+                    format: int32
+                cancelRequested:
+                    type: boolean
+                errorCode:
+                    type: string
+                errorReason:
+                    type: string
+                version:
+                    type: integer
+                    format: int32
+                startedAt:
+                    type: string
+                finishedAt:
+                    type: string
+                ratePerMinute:
+                    type: integer
+                    format: int32
+                nextRequestAt:
+                    type: string
+        admin.v1.RunItem:
+            type: object
+            properties:
+                id:
+                    type: string
+                runId:
+                    type: string
+                candidateId:
+                    type: string
+                candidateExternalId:
+                    type: string
+                stage:
+                    type: string
+                    description: 'stage is the step of the run: summary, detail or episodes.'
+                result:
+                    type: string
+                    description: result is success or failed.
+                errorCode:
+                    type: string
+                errorMessage:
+                    type: string
+                attempt:
+                    type: integer
+                    format: int32
+                createdAt:
+                    type: string
+            description: RunItem is one row one run produced, with the result of that attempt.
+        admin.v1.RunItemSet:
+            type: object
+            properties:
+                total:
+                    type: integer
+                    format: int32
+                page:
+                    type: integer
+                    format: int32
+                pageSize:
+                    type: integer
+                    format: int32
+                items:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/admin.v1.RunItem'
+            description: RunItemSet is one page of the rows of a run.
+        admin.v1.RunSet:
+            type: object
+            properties:
+                items:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/admin.v1.Run'
+                total:
+                    type: integer
+                    format: int32
+                page:
+                    type: integer
+                    format: int32
+                pageSize:
+                    type: integer
+                    format: int32
+        admin.v1.RuntimeInfo:
+            type: object
+            properties:
+                database:
+                    type: string
+                    description: database is the schema the server is connected to.
+                databaseHost:
+                    type: string
+                    description: database_host is the "host:port" of the database server.
+            description: RuntimeInfo describes the runtime target. It never carries credentials.
+        admin.v1.SeriesDetail:
+            type: object
+            properties:
+                id:
+                    type: string
+                sourceCode:
+                    type: string
+                externalId:
+                    type: string
+                candidateId:
+                    type: string
+                status:
+                    type: string
+                version:
+                    type: integer
+                    format: int32
+                currentDraftRevisionId:
+                    type: string
+                draft:
+                    $ref: '#/components/schemas/admin.v1.Revision'
+                episodes:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/admin.v1.RevisionEpisode'
+                publishedRevision:
+                    allOf:
+                        - $ref: '#/components/schemas/admin.v1.Revision'
+                    description: published_revision is the revision on the shelf, if there is one.
+                publishedRevisionId:
+                    type: string
+                    description: published_revision_id references that revision.
+        admin.v1.SeriesItem:
+            type: object
+            properties:
+                seriesId:
+                    type: string
+                title:
+                    type: string
+                description:
+                    type: string
+                revisionId:
+                    type: string
+                    description: revision_id is the working draft, zero when there is none.
+                revisionNo:
+                    type: integer
+                    format: int32
+                revisionState:
+                    type: string
+                    description: revision_state is the state of the working draft.
+                status:
+                    type: string
+                    description: status is the state of the series itself.
+                version:
+                    type: integer
+                    format: int32
+                updatedAt:
+                    type: string
+                episodeCount:
+                    type: integer
+                    format: int32
+                published:
+                    type: boolean
+                    description: published tells whether a revision is on the shelf.
+            description: SeriesItem is one series in the content list.
+        admin.v1.SeriesSet:
+            type: object
+            properties:
+                total:
+                    type: integer
+                    format: int32
+                page:
+                    type: integer
+                    format: int32
+                pageSize:
+                    type: integer
+                    format: int32
+                items:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/admin.v1.SeriesItem'
+            description: SeriesSet is one page of the content list.
+        admin.v1.SetChannelStatusRequest:
+            required:
+                - id
+                - expectedVersion
+                - status
+            type: object
+            properties:
+                id:
+                    type: string
+                expectedVersion:
+                    type: integer
+                    format: int32
+                status:
+                    type: string
+                    description: status is enabled or paused.
+        admin.v1.SetSelectionRequest:
+            required:
+                - id
+                - expectedVersion
+            type: object
+            properties:
+                id:
+                    type: string
+                expectedVersion:
+                    type: integer
+                    format: int32
+                selectionMode:
+                    type: string
+                episodeIds:
+                    type: array
+                    items:
+                        type: string
+        admin.v1.Source:
+            type: object
+            properties:
+                id:
+                    type: string
+                code:
+                    type: string
+                name:
+                    type: string
+                status:
+                    type: string
+                    description: status is enabled or paused.
+                version:
+                    type: integer
+                    format: int32
+                updatedAt:
+                    type: string
+            description: Source is the content owner an operator configures.
+        admin.v1.SourceEntry:
+            type: object
+            properties:
+                sourceCode:
+                    type: string
+                kind:
+                    type: string
+                    description: kind is the entry kind; only "rank" is connected.
+                channel:
+                    type: string
+                    description: channel is the concrete channel slug the adapter builds.
+                label:
+                    type: string
+                adapterKey:
+                    type: string
+                    description: adapter_key names the registered metadata adapter that serves the entry.
+                description:
+                    type: string
+                    description: description says what the entry reads; it never carries a credential.
+            description: SourceEntry is a web entry point the adapter can really execute.
+        admin.v1.SourceEntrySet:
+            type: object
+            properties:
+                items:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/admin.v1.SourceEntry'
+            description: SourceEntrySet lists the supported entries.
+        admin.v1.SourceEpisode:
+            type: object
+            properties:
+                externalId:
+                    type: string
+                number:
+                    type: integer
+                    format: int32
+                title:
+                    type: string
+        admin.v1.SourceEpisodeSet:
+            type: object
+            properties:
+                items:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/admin.v1.SourceEpisode'
+                total:
+                    type: integer
+                    format: int32
+        admin.v1.SourceSet:
+            type: object
+            properties:
+                items:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/admin.v1.Source'
+        admin.v1.Staff:
+            type: object
+            properties:
+                id:
+                    type: string
+                username:
+                    type: string
+                displayName:
+                    type: string
+                role:
+                    type: string
+                enabled:
+                    type: boolean
+                version:
+                    type: integer
+                    format: int32
+                lastLoginAt:
+                    type: string
+                createdAt:
+                    type: string
+                updatedAt:
+                    type: string
+            description: Staff is one back-office account. The password hash is never returned.
+        admin.v1.StaffSet:
+            type: object
+            properties:
+                total:
+                    type: integer
+                    format: int32
+                page:
+                    type: integer
+                    format: int32
+                pageSize:
+                    type: integer
+                    format: int32
+                items:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/admin.v1.Staff'
+            description: StaffSet is a page of accounts.
+        admin.v1.SubmitMediaBatchRequest:
+            required:
+                - id
+                - expectedVersion
+                - processingProfileKey
+                - authorizationGrantId
+                - expectedAuthorizationVersion
+            type: object
+            properties:
+                id:
+                    type: string
+                expectedVersion:
+                    type: integer
+                    format: int32
+                processingProfileKey:
+                    type: string
+                inputKind:
+                    type: string
+                authorizationGrantId:
+                    type: string
+                    description: The grant is chosen explicitly; a revision never inherits one.
+                expectedAuthorizationVersion:
+                    type: integer
+                    format: int32
+            description: SubmitMediaBatchRequest asks for a batch over a frozen revision.
+        admin.v1.TestChannelRequest:
+            required:
+                - id
+            type: object
+            properties:
+                id:
+                    type: string
+        admin.v1.TriggerPlanRequest:
+            required:
+                - id
+            type: object
+            properties:
+                id:
+                    type: string
+                expectedVersion:
+                    type: integer
+                    format: int32
+        admin.v1.UnpublishSeriesRequest:
+            required:
+                - id
+                - expectedVersion
+            type: object
+            properties:
+                id:
+                    type: string
+                expectedVersion:
+                    type: integer
+                    format: int32
+                reason:
+                    type: string
+                    description: |-
+                        reason is what the operator states for taking the work down. It is kept on
+                         the audit row, so a later reader knows why it disappeared.
+        admin.v1.UpdateChannelRequest:
+            required:
+                - id
+                - expectedVersion
+                - name
+                - entryKind
+                - entryCode
+                - baseUrl
+                - allowedHosts
+                - ratePerMinute
+                - timeoutSeconds
+            type: object
+            properties:
+                id:
+                    type: string
+                expectedVersion:
+                    type: integer
+                    format: int32
+                name:
+                    type: string
+                entryKind:
+                    type: string
+                entryCode:
+                    type: string
+                baseUrl:
+                    type: string
+                allowedHosts:
+                    type: string
+                ratePerMinute:
+                    type: integer
+                    format: int32
+                timeoutSeconds:
+                    type: integer
+                    format: int32
+                secretRef:
+                    type: string
+                    description: secret_ref names a private server configuration; an empty value clears it.
+        admin.v1.UpdatePlanRequest:
+            required:
+                - id
+                - expectedVersion
+                - name
+                - pageStart
+                - pageEnd
+                - requestBudget
+                - itemBudget
+            type: object
+            properties:
+                id:
+                    type: string
+                expectedVersion:
+                    type: integer
+                    format: int32
+                name:
+                    type: string
+                pageStart:
+                    type: integer
+                    format: int32
+                pageEnd:
+                    type: integer
+                    format: int32
+                requestBudget:
+                    type: integer
+                    format: int32
+                itemBudget:
+                    type: integer
+                    format: int32
+                fetchDetails:
+                    type: boolean
+                fetchEpisodes:
+                    type: boolean
+                enabled:
+                    type: boolean
+                ratePerMinute:
+                    type: integer
+                    format: int32
+                cron:
+                    type: string
+                timezone:
+                    type: string
+        admin.v1.UpdateRevisionRequest:
+            required:
+                - id
+                - revisionId
+                - expectedVersion
+            type: object
+            properties:
+                id:
+                    type: string
+                revisionId:
+                    type: string
+                expectedVersion:
+                    type: integer
+                    format: int32
+                title:
+                    type: string
+                    description: |-
+                        title and description are optional: an absent field keeps the stored
+                         value, an empty field clears it.
+                description:
+                    type: string
+        admin.v1.UpdateSourceRequest:
+            required:
+                - id
+                - expectedVersion
+                - name
+            type: object
+            properties:
+                id:
+                    type: string
+                expectedVersion:
+                    type: integer
+                    format: int32
+                name:
+                    type: string
+                status:
+                    type: string
+                    description: status is optional; an empty value keeps the current one.
+        admin.v1.UpdateStaffRequest:
+            required:
+                - id
+                - expectedVersion
+            type: object
+            properties:
+                id:
+                    type: string
+                expectedVersion:
+                    type: integer
+                    format: int32
+                displayName:
+                    type: string
+                role:
+                    type: string
+                enabled:
+                    type: boolean
+            description: UpdateStaffRequest changes display name, role or enabled state.
+        admin.v1.UploadAuthorization:
+            type: object
+            properties:
+                url:
+                    type: string
+                method:
+                    type: string
+                headers:
+                    type: object
+                    additionalProperties:
+                        type: string
+                expiresAt:
+                    type: string
+            description: UploadAuthorization is the short-lived write credential of one object.
+        admin.v1.UploadSession:
+            type: object
+            properties:
+                id:
+                    type: string
+                revisionId:
+                    type: string
+                episodeId:
+                    type: string
+                kind:
+                    type: string
+                status:
+                    type: string
+                version:
+                    type: integer
+                    format: int32
+                filename:
+                    type: string
+                contentType:
+                    type: string
+                sizeBytes:
+                    type: string
+                expectedSha256:
+                    type: string
+                sha256:
+                    type: string
+                width:
+                    type: integer
+                    format: int32
+                height:
+                    type: integer
+                    format: int32
+                assetId:
+                    type: string
+                createdBy:
+                    type: string
+                revisionVersion:
+                    type: integer
+                    format: int32
+                expiresAt:
+                    type: string
+                completedAt:
+                    type: string
+                createdAt:
+                    type: string
+                updatedAt:
+                    type: string
+                authorization:
+                    allOf:
+                        - $ref: '#/components/schemas/admin.v1.UploadAuthorization'
+                    description: authorization is only populated by create and renew.
+            description: UploadSession is one staging upload of an episode file or a cover.
+        admin.v1.UploadSessionSet:
+            type: object
+            properties:
+                total:
+                    type: integer
+                    format: int32
+                page:
+                    type: integer
+                    format: int32
+                pageSize:
+                    type: integer
+                    format: int32
+                items:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/admin.v1.UploadSession'
+            description: UploadSessionSet is a page of upload sessions.
+        todo.v1.SyncTodoRequest:
+            type: object
+            properties:
+                action:
+                    type: string
+                    description: The operation to perform. One of `create`, `update`, or `delete`.
+                todo:
+                    allOf:
+                        - $ref: '#/components/schemas/todo.v1.Todo'
+                    description: Payload for `create` and `update` actions. Ignored for `delete`.
+                id:
+                    type: string
+                    description: Identifier of the target todo. Required for `delete` and `update`.
+                updateMask:
+                    type: string
+                    description: |-
+                        Field mask used by `update` actions to limit which fields are overwritten.
+                         Ignored for `create` and `delete`.
+                    format: field-mask
+            description: |-
+                SyncTodoRequest is a single client message in the SyncTodos bidirectional
+                 stream. The action field selects which operation to perform on the server.
+        todo.v1.Todo:
+            type: object
+            properties:
+                id:
+                    type: string
+                    description: Application-generated UUIDv7 identifier. Read-only on create.
+                title:
+                    type: string
+                    description: Short human-readable title.
+                content:
+                    type: string
+                    description: Detailed description or notes for the todo item.
+                completed:
+                    type: boolean
+                    description: Whether the todo item has been completed.
+                createdAt:
+                    type: string
+                    description: Time at which the todo item was created. Server-assigned, read-only.
+                    format: date-time
+                updatedAt:
+                    type: string
+                    description: Time at which the todo item was last modified. Server-assigned, read-only.
+                    format: date-time
+                status:
+                    type: integer
+                    description: |-
+                        Lifecycle state. Server-assigned, read-only: call DeleteTodo to move an
+                         item to TODO_STATUS_DELETED.
+                    format: enum
+            description: Todo is the canonical representation of a todo item.
+        todo.v1.TodoEvent:
+            type: object
+            properties:
+                action:
+                    type: string
+                    description: The change that occurred. One of `created`, `updated`, or `deleted`.
+                todo:
+                    allOf:
+                        - $ref: '#/components/schemas/todo.v1.Todo'
+                    description: |-
+                        The todo item after the change. For `deleted` events only the id field
+                         is guaranteed to be populated.
+                eventTime:
+                    type: string
+                    description: Time at which the change was observed by the server.
+                    format: date-time
+            description: |-
+                TodoEvent is a server-sent message describing a change to a todo item.
+                 It is emitted by both WatchTodos and SyncTodos streams.
+        todo.v1.TodoSet:
+            type: object
+            properties:
+                todos:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/todo.v1.Todo'
+                    description: The page of todo items in the order requested by ListTodosRequest.order_by.
+                nextPageToken:
+                    type: string
+                    description: |-
+                        Token used to retrieve the next page via ListTodosRequest.page_token.
+                         Empty when there are no more results.
+            description: TodoSet is a paginated collection of todo items returned by ListTodos.
+        web.v1.CategorySet:
+            type: object
+            properties:
+                categories:
+                    type: array
+                    items:
+                        type: string
+            description: CategorySet is the categories a visitor can filter by, sorted by name.
+        web.v1.EpisodeCard:
+            type: object
+            properties:
+                episodeId:
+                    type: string
+                number:
+                    type: integer
+                    format: int32
+                externalId:
+                    type: string
+                assetId:
+                    type: string
+                durationMs:
+                    type: string
+                width:
+                    type: integer
+                    format: int32
+                height:
+                    type: integer
+                    format: int32
+            description: EpisodeCard is one playable episode of the published revision.
+        web.v1.OpenPlaybackRequest:
+            required:
+                - seriesId
+                - episodeId
+            type: object
+            properties:
+                seriesId:
+                    type: string
+                episodeId:
+                    type: string
+        web.v1.PlaybackTicket:
+            type: object
+            properties:
+                sessionId:
+                    type: string
+                token:
+                    type: string
+                url:
+                    type: string
+                expiresAt:
+                    type: string
+                episodeId:
+                    type: string
+                revisionId:
+                    type: string
+            description: PlaybackTicket is a signed playback of one frozen episode.
+        web.v1.RefreshPlaybackRequest:
+            required:
+                - token
+            type: object
+            properties:
+                token:
+                    type: string
+        web.v1.SeriesCard:
+            type: object
+            properties:
+                seriesId:
+                    type: string
+                    description: 64-bit identifiers travel as strings so a browser never loses precision.
+                title:
+                    type: string
+                description:
+                    type: string
+                coverUrl:
+                    type: string
+                episodeCount:
+                    type: integer
+                    format: int32
+                category:
+                    type: string
+                publishedAt:
+                    type: string
+            description: SeriesCard is one published series in a list.
+        web.v1.SeriesDetail:
+            type: object
+            properties:
+                series:
+                    $ref: '#/components/schemas/web.v1.SeriesCard'
+                revisionId:
+                    type: string
+                publicationId:
+                    type: string
+                episodes:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/web.v1.EpisodeCard'
+            description: SeriesDetail is the public detail page.
+        web.v1.SeriesSet:
+            type: object
+            properties:
+                total:
+                    type: integer
+                    format: int32
+                page:
+                    type: integer
+                    format: int32
+                pageSize:
+                    type: integer
+                    format: int32
+                items:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/web.v1.SeriesCard'
+            description: SeriesSet is a page of published series.
+tags:
+    - name: AdminAuditService
+      description: |-
+        AdminAuditService reads the recorded writes of the console. The list holds
+         the actor, the action, the resource, the version, the outcome and the trace
+         identity, never a payload or a credential.
+    - name: AdminAuthService
+      description: |-
+        AdminAuthService owns the browser session of a back-office account. The
+         session cookie is HttpOnly; the CSRF token is returned in the body and has
+         to be sent on every mutating call.
+    - name: AdminAuthorizationService
+      description: |-
+        AdminAuthorizationService owns series-level authorization grants. A grant is
+         append-only: a corrected permission or validity window is a new grant, and
+         an existing one can only be revoked.
+    - name: AdminCandidateService
+      description: AdminCandidateService reads local candidate snapshots only.
+    - name: AdminContentService
+      description: AdminContentService creates local series and edits draft selection.
+    - name: AdminIngestionService
+      description: AdminIngestionService owns persistent collection plans and runs.
+    - name: AdminMediaService
+      description: AdminMediaService owns persistent media batches over frozen revisions.
+    - name: AdminReviewService
+      description: |-
+        AdminReviewService is the review worklist and the publication step. A
+         reviewer claims and decides; publication is a separate action available to
+         administrators and operators.
+    - name: AdminRuntimeService
+      description: |-
+        AdminRuntimeService reports the environment the admin API is bound to so
+         operators and acceptance scripts can confirm they talk to the expected
+         database before they act on it.
+    - name: AdminSourceService
+      description: |-
+        AdminSourceService manages the source and channel configuration. Saving a
+         configuration never calls the source; the probe is an explicit action.
+    - name: AdminStaffService
+      description: |-
+        AdminStaffService manages back-office accounts. Only an administrator may
+         call it.
+    - name: AdminUploadService
+      description: |-
+        AdminUploadService opens short-lived staging uploads for manual episode
+         input and covers. A session never returns a permanent secret, and a
+         completed session registers a trusted input rather than ready material.
+    - name: TodoService
+      description: |-
+        TodoService provides a simple CRUD example for managing todo items.
+         It demonstrates unary, server-streaming, and bidirectional-streaming RPCs
+         together with AIP-style list filtering, ordering, and pagination.
+    - name: WebService
+      description: |-
+        WebService is the public, read-only surface. It only reads the current
+         published revision and its frozen metadata; it never falls back to a
+         candidate, a draft or "latest material".

@@ -1,0 +1,12 @@
+.git
+bin
+*.log
+.env*
+!.env.example
+
+# Private media and device state are mounted at runtime, never built in.
+var
+backups
+node_modules
+.tools
+.cache

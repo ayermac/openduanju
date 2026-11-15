@@ -1,0 +1,116 @@
+syntax = "proto3";
+
+package web.v1;
+
+import "google/api/annotations.proto";
+import "google/api/field_behavior.proto";
+
+option go_package = "openduanju-server/api/web/v1;v1";
+
+// WebService is the public, read-only surface. It only reads the current
+// published revision and its frozen metadata; it never falls back to a
+// candidate, a draft or "latest material".
+service WebService {
+  rpc Home (HomeRequest) returns (SeriesSet) {
+    option (google.api.http) = { get: "/api/web/v1/home" };
+  }
+  rpc ListSeries (ListSeriesRequest) returns (SeriesSet) {
+    option (google.api.http) = { get: "/api/web/v1/series" };
+  }
+  rpc GetSeries (GetSeriesRequest) returns (SeriesDetail) {
+    option (google.api.http) = { get: "/api/web/v1/series/{id}" };
+  }
+  // ListCategories names the categories that have at least one displayable
+  // published series. It reads the same public projection and the same
+  // dynamic gate as the list, so a category never outlives its content.
+  rpc ListCategories (ListCategoriesRequest) returns (CategorySet) {
+    option (google.api.http) = { get: "/api/web/v1/categories" };
+  }
+  rpc OpenPlayback (OpenPlaybackRequest) returns (PlaybackTicket) {
+    option (google.api.http) = { post: "/api/web/v1/playback-sessions" body: "*" };
+  }
+  rpc RefreshPlayback (RefreshPlaybackRequest) returns (PlaybackTicket) {
+    option (google.api.http) = { post: "/api/web/v1/playback-sessions/refresh" body: "*" };
+  }
+}
+
+// SeriesCard is one published series in a list.
+message SeriesCard {
+  // 64-bit identifiers travel as strings so a browser never loses precision.
+  string series_id = 1;
+  string title = 2;
+  string description = 3;
+  string cover_url = 4;
+  int32 episode_count = 5;
+  string category = 6;
+  string published_at = 7;
+}
+
+// SeriesSet is a page of published series.
+message SeriesSet {
+  int32 total = 1;
+  int32 page = 2;
+  int32 page_size = 3;
+  repeated SeriesCard items = 4;
+}
+
+// EpisodeCard is one playable episode of the published revision.
+message EpisodeCard {
+  string episode_id = 1;
+  int32 number = 2;
+  string external_id = 3;
+  string asset_id = 4;
+  int64 duration_ms = 5;
+  int32 width = 6;
+  int32 height = 7;
+}
+
+// SeriesDetail is the public detail page.
+message SeriesDetail {
+  SeriesCard series = 1;
+  string revision_id = 2;
+  string publication_id = 3;
+  repeated EpisodeCard episodes = 4;
+}
+
+// PlaybackTicket is a signed playback of one frozen episode.
+message PlaybackTicket {
+  string session_id = 1;
+  string token = 2;
+  string url = 3;
+  string expires_at = 4;
+  string episode_id = 5;
+  string revision_id = 6;
+}
+
+message HomeRequest {
+  int32 limit = 1;
+}
+
+message ListSeriesRequest {
+  string q = 1;
+  string category = 2;
+  int32 page = 3;
+  int32 page_size = 4;
+}
+
+message GetSeriesRequest {
+  string id = 1 [(google.api.field_behavior) = REQUIRED];
+}
+
+message OpenPlaybackRequest {
+  string series_id = 1 [(google.api.field_behavior) = REQUIRED];
+  string episode_id = 2 [(google.api.field_behavior) = REQUIRED];
+}
+
+message RefreshPlaybackRequest {
+  string token = 1 [(google.api.field_behavior) = REQUIRED];
+}
+
+// ListCategoriesRequest has no parameters: the list is small and derived.
+message ListCategoriesRequest {}
+
+// CategorySet is the categories a visitor can filter by, sorted by name.
+message CategorySet {
+  repeated string categories = 1;
+}

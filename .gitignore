@@ -1,0 +1,27 @@
+node_modules/
+**/dist/
+**/coverage/
+**/playwright-report/
+**/test-results/
+**/*.tsbuildinfo
+**/.eslintcache
+.tools/
+.cache/
+.env
+.env.*
+!.env.example
+**/.env
+**/.env.*
+!**/.env.example
+var/
+backups/
+*.log
+# Project working documents stay local, including test evidence.
+/.doc/
+.DS_Store
+
+# Local agent workspace data, not project sources.
+/.workbuddy/
+
+# Per-machine agent memory must not enter the public repository.
+/.omc/

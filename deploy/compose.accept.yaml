@@ -1,0 +1,28 @@
+# Isolated acceptance stack.
+#
+# It is built from the same Dockerfiles and the same compose file as the
+# deliverable stack, and differs only in where it runs: its own project name,
+# its own database and its own volumes, so a business acceptance never writes
+# to the development instance.
+#
+#   MYSQL_DATABASE=openduanju_b_accept docker compose -p openduanju-baccept \
+#     --env-file .env -f deploy/compose.yaml -f deploy/compose.accept.yaml up -d
+#
+# mysql and redis stay unpublished: the acceptance reaches the database only
+# from inside the compose network, while the API and the two front ends are
+# reachable on loopback ports that do not collide with the deliverable stack.
+services:
+  mysql:
+    ports: !override []
+  redis:
+    ports: !override []
+  server:
+    ports: !override
+      - "127.0.0.1:18001:8000"
+      - "127.0.0.1:19001:9000"
+  admin:
+    ports: !override
+      - "127.0.0.1:18091:80"
+  web:
+    ports: !override
+      - "127.0.0.1:18092:80"

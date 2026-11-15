@@ -1,0 +1,1273 @@
+syntax = "proto3";
+
+package admin.v1;
+
+import "google/api/annotations.proto";
+import "google/api/field_behavior.proto";
+import "google/protobuf/empty.proto";
+
+option go_package = "openduanju-server/api/admin/v1;v1";
+
+// AdminMediaService owns persistent media batches over frozen revisions.
+service AdminMediaService {
+  rpc SubmitRevision (SubmitMediaBatchRequest) returns (MediaBatch) {
+    option (google.api.http) = { post: "/api/admin/v1/revisions/{id}/media-batches" body: "*" };
+  }
+  rpc ListBatches (ListMediaBatchesRequest) returns (MediaBatchSet) {
+    option (google.api.http) = { get: "/api/admin/v1/media-batches" };
+  }
+  rpc GetBatch (GetMediaBatchRequest) returns (MediaBatchDetail) {
+    option (google.api.http) = { get: "/api/admin/v1/media-batches/{id}" };
+  }
+  rpc ListItems (ListMediaItemsRequest) returns (MediaItemSet) {
+    option (google.api.http) = { get: "/api/admin/v1/media-batches/{id}/items" };
+  }
+  rpc RetryFailures (RetryMediaBatchRequest) returns (MediaBatch) {
+    option (google.api.http) = { post: "/api/admin/v1/media-batches/{id}/retry" body: "*" };
+  }
+  rpc CancelBatch (CancelMediaBatchRequest) returns (MediaBatch) {
+    option (google.api.http) = { post: "/api/admin/v1/media-batches/{id}/cancel" body: "*" };
+  }
+}
+
+// AdminRuntimeService reports the environment the admin API is bound to so
+// operators and acceptance scripts can confirm they talk to the expected
+// database before they act on it.
+service AdminRuntimeService {
+  rpc GetRuntimeInfo (google.protobuf.Empty) returns (RuntimeInfo) {
+    option (google.api.http) = { get: "/api/admin/v1/runtime" };
+  }
+}
+
+// RuntimeInfo describes the runtime target. It never carries credentials.
+message RuntimeInfo {
+  // database is the schema the server is connected to.
+  string database = 1;
+  // database_host is the "host:port" of the database server.
+  string database_host = 2;
+}
+
+// AdminIngestionService owns persistent collection plans and runs.
+service AdminIngestionService {
+  rpc ListPlans (google.protobuf.Empty) returns (PlanSet) {
+    option (google.api.http) = { get: "/api/admin/v1/ingestion/plans" };
+  }
+  rpc CreatePlan (CreatePlanRequest) returns (Plan) {
+    option (google.api.http) = { post: "/api/admin/v1/ingestion/plans" body: "*" };
+  }
+  rpc UpdatePlan (UpdatePlanRequest) returns (Plan) {
+    option (google.api.http) = { patch: "/api/admin/v1/ingestion/plans/{id}" body: "*" };
+  }
+  rpc TriggerPlan (TriggerPlanRequest) returns (Run) {
+    option (google.api.http) = { post: "/api/admin/v1/ingestion/plans/{id}/runs" body: "*" };
+  }
+  rpc ListRuns (ListRunsRequest) returns (RunSet) {
+    option (google.api.http) = { get: "/api/admin/v1/ingestion/runs" };
+  }
+  rpc GetRun (GetRunRequest) returns (Run) {
+    option (google.api.http) = { get: "/api/admin/v1/ingestion/runs/{id}" };
+  }
+  rpc RetryRun (RetryRunRequest) returns (Run) {
+    option (google.api.http) = { post: "/api/admin/v1/ingestion/runs/{id}/retry" body: "*" };
+  }
+  rpc CancelRun (CancelRunRequest) returns (Run) {
+    option (google.api.http) = { post: "/api/admin/v1/ingestion/runs/{id}/cancel" body: "*" };
+  }
+}
+
+// AdminSourceService manages the source and channel configuration. Saving a
+// configuration never calls the source; the probe is an explicit action.
+service AdminSourceService {
+  rpc ListSources (ListSourcesRequest) returns (SourceSet) {
+    option (google.api.http) = { get: "/api/admin/v1/sources" };
+  }
+  rpc UpdateSource (UpdateSourceRequest) returns (Source) {
+    option (google.api.http) = { patch: "/api/admin/v1/sources/{id}" body: "*" };
+  }
+  rpc ListChannels (ListChannelsRequest) returns (ChannelSet) {
+    option (google.api.http) = { get: "/api/admin/v1/source-channels" };
+  }
+  rpc GetChannel (GetChannelRequest) returns (Channel) {
+    option (google.api.http) = { get: "/api/admin/v1/source-channels/{id}" };
+  }
+  rpc UpdateChannel (UpdateChannelRequest) returns (Channel) {
+    option (google.api.http) = { patch: "/api/admin/v1/source-channels/{id}" body: "*" };
+  }
+  rpc SetChannelStatus (SetChannelStatusRequest) returns (Channel) {
+    option (google.api.http) = { post: "/api/admin/v1/source-channels/{id}/status" body: "*" };
+  }
+  rpc TestChannel (TestChannelRequest) returns (ChannelProbe) {
+    option (google.api.http) = { post: "/api/admin/v1/source-channels/{id}/probe" body: "*" };
+  }
+}
+
+// AdminAuditService reads the recorded writes of the console. The list holds
+// the actor, the action, the resource, the version, the outcome and the trace
+// identity, never a payload or a credential.
+service AdminAuditService {
+  rpc ListAuditEvents (ListAuditEventsRequest) returns (AuditEventSet) {
+    option (google.api.http) = { get: "/api/admin/v1/audit" };
+  }
+}
+
+// AdminCandidateService reads local candidate snapshots only.
+service AdminCandidateService {
+  rpc ListSourceEntries (ListSourceEntriesRequest) returns (SourceEntrySet) {
+    option (google.api.http) = { get: "/api/admin/v1/ingestion/entries" };
+  }
+  rpc ListRunItems (ListRunItemsRequest) returns (RunItemSet) {
+    option (google.api.http) = { get: "/api/admin/v1/ingestion/runs/{id}/items" };
+  }
+  rpc ListRunCandidates (ListRunCandidatesRequest) returns (CandidateSet) {
+    option (google.api.http) = { get: "/api/admin/v1/ingestion/runs/{id}/candidates" };
+  }
+  rpc ListCandidates (ListCandidatesRequest) returns (CandidateSet) {
+    option (google.api.http) = { get: "/api/admin/v1/candidates" };
+  }
+  rpc GetCandidate (GetCandidateRequest) returns (CandidateDetail) {
+    option (google.api.http) = { get: "/api/admin/v1/candidates/{id}" };
+  }
+  rpc ListCandidateEpisodes (ListCandidateEpisodesRequest) returns (SourceEpisodeSet) {
+    option (google.api.http) = { get: "/api/admin/v1/candidates/{id}/episodes" };
+  }
+}
+
+// AdminContentService creates local series and edits draft selection.
+service AdminContentService {
+  rpc CreateSeries (CreateSeriesRequest) returns (SeriesDetail) {
+    option (google.api.http) = { post: "/api/admin/v1/series" body: "*" };
+  }
+  rpc ListSeries (ListSeriesRequest) returns (SeriesSet) {
+    option (google.api.http) = { get: "/api/admin/v1/series" };
+  }
+  rpc CreateRevision (CreateRevisionRequest) returns (SeriesDetail) {
+    option (google.api.http) = { post: "/api/admin/v1/series/{id}/revisions" body: "*" };
+  }
+  rpc UpdateRevision (UpdateRevisionRequest) returns (SeriesDetail) {
+    option (google.api.http) = { patch: "/api/admin/v1/series/{id}/revisions/{revision_id}" body: "*" };
+  }
+  rpc GetSeries (GetSeriesRequest) returns (SeriesDetail) {
+    option (google.api.http) = { get: "/api/admin/v1/series/{id}" };
+  }
+  rpc ListRevisionEpisodes (ListRevisionEpisodesRequest) returns (RevisionEpisodeSet) {
+    option (google.api.http) = { get: "/api/admin/v1/revisions/{id}/episodes" };
+  }
+  rpc SetSelection (SetSelectionRequest) returns (RevisionSelection) {
+    option (google.api.http) = { put: "/api/admin/v1/revisions/{id}/selection" body: "*" };
+  }
+}
+
+
+// Source is the content owner an operator configures.
+message Source {
+  int64 id = 1;
+  string code = 2;
+  string name = 3;
+  // status is enabled or paused.
+  string status = 4;
+  int32 version = 5;
+  string updated_at = 6;
+}
+
+message SourceSet {
+  repeated Source items = 1;
+}
+
+message ListSourcesRequest {}
+
+message UpdateSourceRequest {
+  int64 id = 1 [(google.api.field_behavior) = REQUIRED];
+  int32 expected_version = 2 [(google.api.field_behavior) = REQUIRED];
+  string name = 3 [(google.api.field_behavior) = REQUIRED];
+  // status is optional; an empty value keeps the current one.
+  string status = 4;
+}
+
+// Channel is one web entry of a source with the configuration that is really
+// used by collection.
+message Channel {
+  int64 id = 1;
+  int64 source_id = 2;
+  string source_code = 3;
+  string source_name = 4;
+  string source_status = 5;
+  string code = 6;
+  string name = 7;
+  string adapter_key = 8;
+  string entry_kind = 9;
+  string entry_code = 10;
+  string base_url = 11;
+  string allowed_hosts = 12;
+  int32 rate_per_minute = 13;
+  int32 timeout_seconds = 14;
+  // has_secret reports whether a private reference is configured; the
+  // reference itself is never returned.
+  bool has_secret = 15;
+  string status = 16;
+  // paused is true when the channel or its source is paused.
+  bool paused = 17;
+  // paused_cause is channel or source.
+  string paused_cause = 18;
+  int32 version = 19;
+  string updated_at = 20;
+}
+
+message ChannelSet {
+  repeated Channel items = 1;
+}
+
+message ListChannelsRequest {
+  int64 source_id = 1;
+}
+
+message GetChannelRequest {
+  int64 id = 1 [(google.api.field_behavior) = REQUIRED];
+}
+
+message UpdateChannelRequest {
+  int64 id = 1 [(google.api.field_behavior) = REQUIRED];
+  int32 expected_version = 2 [(google.api.field_behavior) = REQUIRED];
+  string name = 3 [(google.api.field_behavior) = REQUIRED];
+  string entry_kind = 4 [(google.api.field_behavior) = REQUIRED];
+  string entry_code = 5 [(google.api.field_behavior) = REQUIRED];
+  string base_url = 6 [(google.api.field_behavior) = REQUIRED];
+  string allowed_hosts = 7 [(google.api.field_behavior) = REQUIRED];
+  int32 rate_per_minute = 8 [(google.api.field_behavior) = REQUIRED];
+  int32 timeout_seconds = 9 [(google.api.field_behavior) = REQUIRED];
+  // secret_ref names a private server configuration; an empty value clears it.
+  string secret_ref = 10;
+}
+
+message SetChannelStatusRequest {
+  int64 id = 1 [(google.api.field_behavior) = REQUIRED];
+  int32 expected_version = 2 [(google.api.field_behavior) = REQUIRED];
+  // status is enabled or paused.
+  string status = 3 [(google.api.field_behavior) = REQUIRED];
+}
+
+message TestChannelRequest {
+  int64 id = 1 [(google.api.field_behavior) = REQUIRED];
+}
+
+// ChannelProbe is the result of one explicit connection test.
+message ChannelProbe {
+  bool ok = 1;
+  string channel = 2;
+  int64 latency_ms = 3;
+  int32 items = 4;
+  int32 total_pages = 5;
+  string error_code = 6;
+  string error_message = 7;
+  string probed_at = 8;
+}
+
+
+// AuditEvent is one recorded write.
+message AuditEvent {
+  int64 id = 1;
+  // trace_id is the identity of the request; it also appears in the error
+  // report of the same operation.
+  string trace_id = 2;
+  int64 actor_id = 3;
+  string actor_name = 4;
+  string action = 5;
+  string resource_type = 6;
+  string resource_id = 7;
+  int32 resource_version = 8;
+  // result is success or failure.
+  string result = 9;
+  // reason is the stable failure reason of the operation.
+  string reason = 10;
+  string created_at = 11;
+}
+
+message AuditEventSet {
+  repeated AuditEvent items = 1;
+  int32 total = 2;
+  int32 page = 3;
+  int32 page_size = 4;
+}
+
+message ListAuditEventsRequest {
+  int32 page = 1;
+  int32 page_size = 2;
+  string resource_type = 3;
+  string resource_id = 4;
+  string action = 5;
+  int64 actor_id = 6;
+  string trace_id = 7;
+  // actor_name matches the operator by the name recorded in the row, which
+  // is the name an operator knows.
+  string actor_name = 8;
+}
+
+message Plan {
+  int64 id = 1;
+  string code = 2;
+  string name = 3;
+  string source_code = 4;
+  string channel = 5;
+  int32 page_start = 6;
+  int32 page_end = 7;
+  int32 request_budget = 8;
+  int32 item_budget = 9;
+  bool fetch_details = 10;
+  bool fetch_episodes = 11;
+  bool enabled = 12;
+  int32 version = 13;
+  int32 rate_per_minute = 14;
+  // cron is a 5-field cron expression; empty keeps the plan manual.
+  string cron = 15;
+  // timezone is the IANA zone the cron expression is evaluated in.
+  string timezone = 16;
+  // next_run_at is the next scheduled fire time in UTC.
+  string next_run_at = 17;
+}
+
+message PlanSet {
+  repeated Plan items = 1;
+}
+
+message CreatePlanRequest {
+  string code = 1 [(google.api.field_behavior) = REQUIRED];
+  string name = 2 [(google.api.field_behavior) = REQUIRED];
+  string source_code = 3 [(google.api.field_behavior) = REQUIRED];
+  string channel = 4 [(google.api.field_behavior) = REQUIRED];
+  int32 page_start = 5 [(google.api.field_behavior) = REQUIRED];
+  int32 page_end = 6 [(google.api.field_behavior) = REQUIRED];
+  int32 request_budget = 7;
+  int32 item_budget = 8;
+  bool fetch_details = 9;
+  bool fetch_episodes = 10;
+  bool enabled = 11;
+  int32 rate_per_minute = 12;
+  string cron = 13;
+  string timezone = 14;
+}
+
+message UpdatePlanRequest {
+  int64 id = 1 [(google.api.field_behavior) = REQUIRED];
+  int32 expected_version = 2 [(google.api.field_behavior) = REQUIRED];
+  string name = 3 [(google.api.field_behavior) = REQUIRED];
+  int32 page_start = 4 [(google.api.field_behavior) = REQUIRED];
+  int32 page_end = 5 [(google.api.field_behavior) = REQUIRED];
+  int32 request_budget = 6 [(google.api.field_behavior) = REQUIRED];
+  int32 item_budget = 7 [(google.api.field_behavior) = REQUIRED];
+  bool fetch_details = 8;
+  bool fetch_episodes = 9;
+  bool enabled = 10;
+  int32 rate_per_minute = 11;
+  string cron = 12;
+  string timezone = 13;
+}
+
+message TriggerPlanRequest {
+  int64 id = 1 [(google.api.field_behavior) = REQUIRED];
+  int32 expected_version = 2;
+}
+
+message ListRunsRequest {
+  int64 plan_id = 1;
+  string status = 2;
+  int32 page = 3;
+  int32 page_size = 4;
+}
+
+message GetRunRequest {
+  int64 id = 1 [(google.api.field_behavior) = REQUIRED];
+}
+
+message CancelRunRequest {
+  int64 id = 1 [(google.api.field_behavior) = REQUIRED];
+  int32 expected_version = 2 [(google.api.field_behavior) = REQUIRED];
+}
+
+message RetryRunRequest {
+  int64 id = 1 [(google.api.field_behavior) = REQUIRED];
+  int32 expected_version = 2 [(google.api.field_behavior) = REQUIRED];
+  int32 additional_requests = 3;
+  int32 additional_items = 4;
+  string reason = 5;
+}
+
+message Run {
+  int64 id = 1;
+  int64 plan_id = 2;
+  string kind = 3;
+  int64 candidate_id = 4;
+  string source_code = 5;
+  string channel = 6;
+  int32 page_start = 7;
+  int32 page_end = 8;
+  string status = 9;
+  int32 request_budget = 10;
+  int32 item_budget = 11;
+  int32 requests_used = 12;
+  int32 page_cursor = 13;
+  int32 pages_fetched = 14;
+  int32 items_seen = 15;
+  int32 items_upserted = 16;
+  int32 detail_fetched = 17;
+  int32 episodes_fetched = 18;
+  bool cancel_requested = 19;
+  string error_code = 20;
+  string error_reason = 21;
+  int32 version = 22;
+  string started_at = 23;
+  string finished_at = 24;
+  int32 rate_per_minute = 25;
+  string next_request_at = 26;
+}
+
+message RunSet {
+  repeated Run items = 1;
+  int32 total = 2;
+  int32 page = 3;
+  int32 page_size = 4;
+}
+
+message Candidate {
+  int64 id = 1;
+  string source_code = 2;
+  string channel = 3;
+  string external_id = 4;
+  string title = 5;
+  string cover_url = 6;
+  string description = 7;
+  repeated string tags = 8;
+  int32 episode_count = 9;
+  int32 open_episode_count = 10;
+  int32 rank = 11;
+  map<string, string> metrics = 12;
+  string content_hash = 13;
+  string completeness = 14;
+  string detail_fetched_at = 15;
+  string episodes_fetched_at = 16;
+  int64 series_id = 17;
+  string first_seen_at = 18;
+  string last_seen_at = 19;
+}
+
+message CandidateSet {
+  repeated Candidate items = 1;
+  int32 total = 2;
+  int32 page = 3;
+  int32 page_size = 4;
+}
+
+message CandidateDetail {
+  Candidate candidate = 1;
+  repeated SourceEpisode episodes = 2;
+}
+
+message GetCandidateRequest {
+  int64 id = 1 [(google.api.field_behavior) = REQUIRED];
+}
+
+// SourceEntry is a web entry point the adapter can really execute.
+message SourceEntry {
+  string source_code = 1;
+  // kind is the entry kind; only "rank" is connected.
+  string kind = 2;
+  // channel is the concrete channel slug the adapter builds.
+  string channel = 3;
+  string label = 4;
+  // adapter_key names the registered metadata adapter that serves the entry.
+  string adapter_key = 5;
+  // description says what the entry reads; it never carries a credential.
+  string description = 6;
+}
+
+// SourceEntrySet lists the supported entries.
+message SourceEntrySet {
+  repeated SourceEntry items = 1;
+}
+
+message ListSourceEntriesRequest {}
+
+// RunItem is one row one run produced, with the result of that attempt.
+message RunItem {
+  int64 id = 1;
+  int64 run_id = 2;
+  int64 candidate_id = 3;
+  string candidate_external_id = 4;
+  // stage is the step of the run: summary, detail or episodes.
+  string stage = 5;
+  // result is success or failed.
+  string result = 6;
+  string error_code = 7;
+  string error_message = 8;
+  int32 attempt = 9;
+  string created_at = 10;
+}
+
+// RunItemSet is one page of the rows of a run.
+message RunItemSet {
+  int32 total = 1;
+  int32 page = 2;
+  int32 page_size = 3;
+  repeated RunItem items = 4;
+}
+
+message ListRunItemsRequest {
+  int64 id = 1 [(google.api.field_behavior) = REQUIRED];
+  int32 page = 2;
+  int32 page_size = 3;
+}
+
+message ListRunCandidatesRequest {
+  int64 id = 1 [(google.api.field_behavior) = REQUIRED];
+  int32 page = 2;
+  int32 page_size = 3;
+}
+
+message ListCandidatesRequest {
+  int32 page = 1;
+  int32 page_size = 2;
+  string q = 3;
+  string source_code = 4;
+  string completeness = 5;
+  optional bool imported = 6;
+}
+
+message ListCandidateEpisodesRequest {
+  int64 id = 1 [(google.api.field_behavior) = REQUIRED];
+}
+
+message SourceEpisode {
+  string external_id = 1;
+  int32 number = 2;
+  string title = 3;
+}
+
+message SourceEpisodeSet {
+  repeated SourceEpisode items = 1;
+  int32 total = 2;
+}
+
+// CreateSeriesRequest opens a new local series with its first working draft.
+//
+// mode=source imports a collected candidate. mode=manual declares the work
+// itself: a manual work has no source, no external identifier and no
+// candidate, so it never pretends to come from a provider. Both modes enter
+// the same draft, upload, processing, review and publication path.
+message CreateSeriesRequest {
+  string mode = 1 [(google.api.field_behavior) = REQUIRED];
+  string source_code = 2;
+  int64 candidate_id = 3;
+  string expected_candidate_hash = 4;
+  // title and description of a manual work. The title is required; the
+  // description may stay empty while the draft is edited.
+  string title = 5;
+  string description = 6;
+  // episodes are the original episode numbers of a manual work. At least one
+  // is required, and a number may appear only once.
+  repeated ManualEpisode episodes = 7;
+  // request_id is the idempotency key of the creation form. The browser
+  // generates it when the form opens, so a double click or a retried request
+  // returns the series that was already created instead of a second one.
+  string request_id = 8;
+}
+
+// ManualEpisode is one episode a manual work declares. The operator writes the
+// original number; the work has no provider identity and no episode title of
+// its own yet.
+message ManualEpisode {
+  // original_number is the number the operator uses for this episode; it is
+  // kept as written and never renumbered.
+  int32 original_number = 1;
+}
+
+// SeriesItem is one series in the content list.
+message SeriesItem {
+  int64 series_id = 1;
+  string title = 2;
+  string description = 3;
+  // revision_id is the working draft, zero when there is none.
+  int64 revision_id = 4;
+  int32 revision_no = 5;
+  // revision_state is the state of the working draft.
+  string revision_state = 6;
+  // status is the state of the series itself.
+  string status = 7;
+  int32 version = 8;
+  string updated_at = 9;
+  int32 episode_count = 10;
+  // published tells whether a revision is on the shelf.
+  bool published = 11;
+}
+
+// SeriesSet is one page of the content list.
+message SeriesSet {
+  int32 total = 1;
+  int32 page = 2;
+  int32 page_size = 3;
+  repeated SeriesItem items = 4;
+}
+
+message ListSeriesRequest {
+  string q = 1;
+  string status = 2;
+  int32 page = 3;
+  int32 page_size = 4;
+}
+
+// CreateRevisionRequest asks for a new working draft.
+//
+// base_revision_id is the revision the new draft inherits its metadata, its
+// selection and its frozen material from. When the series already has a
+// working draft, the request must name it in replace_draft_revision_id:
+// the draft is then replaced by an explicit action, never silently.
+message CreateRevisionRequest {
+  int64 id = 1 [(google.api.field_behavior) = REQUIRED];
+  int64 base_revision_id = 2;
+  int64 replace_draft_revision_id = 3;
+  // replace_draft_version is the version of that draft the caller read.
+  int32 replace_draft_version = 4;
+}
+
+message UpdateRevisionRequest {
+  int64 id = 1 [(google.api.field_behavior) = REQUIRED];
+  int64 revision_id = 2 [(google.api.field_behavior) = REQUIRED];
+  int32 expected_version = 3 [(google.api.field_behavior) = REQUIRED];
+  // title and description are optional: an absent field keeps the stored
+  // value, an empty field clears it.
+  optional string title = 4;
+  optional string description = 5;
+}
+
+message GetSeriesRequest {
+  int64 id = 1 [(google.api.field_behavior) = REQUIRED];
+}
+
+message Revision {
+  int64 id = 1;
+  int64 series_id = 2;
+  int32 revision_no = 3;
+  string state = 4;
+  int32 version = 5;
+  string title = 6;
+  string description = 7;
+  string cover_url = 8;
+  repeated string tags = 9;
+  int32 selected_count = 10;
+}
+
+message SeriesDetail {
+  int64 id = 1;
+  string source_code = 2;
+  string external_id = 3;
+  int64 candidate_id = 4;
+  string status = 5;
+  int32 version = 6;
+  int64 current_draft_revision_id = 7;
+  Revision draft = 8;
+  repeated RevisionEpisode episodes = 9;
+  // published_revision is the revision on the shelf, if there is one.
+  Revision published_revision = 10;
+  // published_revision_id references that revision.
+  int64 published_revision_id = 11;
+}
+
+message RevisionEpisode {
+  string external_id = 1;
+  int32 number = 2;
+  bool selected = 3;
+  // id is the revision episode a manual upload session binds to.
+  int64 id = 4;
+}
+
+message RevisionEpisodeSet {
+  repeated RevisionEpisode items = 1;
+  int32 total = 2;
+}
+
+message ListRevisionEpisodesRequest {
+  int64 id = 1 [(google.api.field_behavior) = REQUIRED];
+  int32 page = 2;
+  int32 page_size = 3;
+}
+
+message SetSelectionRequest {
+  int64 id = 1 [(google.api.field_behavior) = REQUIRED];
+  int32 expected_version = 2 [(google.api.field_behavior) = REQUIRED];
+  string selection_mode = 3;
+  repeated string episode_ids = 4;
+}
+
+message RevisionSelection {
+  Revision revision = 1;
+  int32 selected_count = 2;
+}
+
+// MediaBatch is one persistent processing run over a frozen revision.
+message MediaBatch {
+  int64 id = 1;
+  int64 series_id = 2;
+  int64 revision_id = 3;
+  string selection_hash = 4;
+  string profile_version = 5;
+  string input_kind = 6;
+  string status = 7;
+  string cover_status = 8;
+  int32 item_total = 9;
+  int32 item_ready = 10;
+  int32 item_failed = 11;
+  bool cancel_requested = 12;
+  int32 version = 13;
+  string error_code = 14;
+  string error_message = 15;
+  string created_by = 16;
+  int64 review_task_id = 17;
+  string created_at = 18;
+  string updated_at = 19;
+}
+
+// MediaBatchSet is a page of batches.
+message MediaBatchSet {
+  repeated MediaBatch items = 1;
+  int32 total = 2;
+  int32 page = 3;
+  int32 page_size = 4;
+}
+
+// MediaItem is one episode task of a batch.
+message MediaItem {
+  int64 id = 1;
+  int64 batch_id = 2;
+  int64 episode_id = 3;
+  string external_id = 4;
+  int32 episode_no = 5;
+  string status = 6;
+  int32 attempt = 7;
+  bool retryable = 8;
+  string next_eligible_at = 9;
+  string error_code = 10;
+  string error_message = 11;
+  string sha256 = 12;
+  int64 size_bytes = 13;
+  string codec = 14;
+  int64 duration_ms = 15;
+  int32 width = 16;
+  int32 height = 17;
+  int64 asset_id = 18;
+  string created_at = 19;
+  string updated_at = 20;
+}
+
+// MediaItemSet is a page of items.
+message MediaItemSet {
+  repeated MediaItem items = 1;
+  int32 total = 2;
+  int32 page = 3;
+  int32 page_size = 4;
+}
+
+// MediaBatchDetail bundles a batch with the first page of its items.
+message MediaBatchDetail {
+  MediaBatch batch = 1;
+  repeated MediaItem items = 2;
+  int32 item_total = 3;
+}
+
+// SubmitMediaBatchRequest asks for a batch over a frozen revision.
+message SubmitMediaBatchRequest {
+  int64 id = 1 [(google.api.field_behavior) = REQUIRED];
+  int32 expected_version = 2 [(google.api.field_behavior) = REQUIRED];
+  string processing_profile_key = 3 [(google.api.field_behavior) = REQUIRED];
+  string input_kind = 4;
+  // The grant is chosen explicitly; a revision never inherits one.
+  int64 authorization_grant_id = 5 [(google.api.field_behavior) = REQUIRED];
+  int32 expected_authorization_version = 6 [(google.api.field_behavior) = REQUIRED];
+}
+
+// ListMediaBatchesRequest filters the batch list.
+message ListMediaBatchesRequest {
+  int32 page = 1;
+  int32 page_size = 2;
+  int64 series_id = 3;
+  int64 revision_id = 4;
+  string status = 5;
+}
+
+// GetMediaBatchRequest selects one batch.
+message GetMediaBatchRequest {
+  int64 id = 1 [(google.api.field_behavior) = REQUIRED];
+}
+
+// ListMediaItemsRequest filters the items of a batch.
+message ListMediaItemsRequest {
+  int64 id = 1 [(google.api.field_behavior) = REQUIRED];
+  int32 page = 2;
+  int32 page_size = 3;
+  string status = 4;
+  // stage filters the same field as status: a task is always in one stage.
+  string stage = 5;
+}
+
+// RetryMediaBatchRequest requeues failed items of a batch.
+message RetryMediaBatchRequest {
+  int64 id = 1 [(google.api.field_behavior) = REQUIRED];
+  int32 expected_version = 2 [(google.api.field_behavior) = REQUIRED];
+  repeated int64 item_ids = 3;
+}
+
+// CancelMediaBatchRequest cancels a running batch.
+message CancelMediaBatchRequest {
+  int64 id = 1 [(google.api.field_behavior) = REQUIRED];
+  int32 expected_version = 2 [(google.api.field_behavior) = REQUIRED];
+  string reason = 3 [(google.api.field_behavior) = REQUIRED];
+}
+
+// AdminUploadService opens short-lived staging uploads for manual episode
+// input and covers. A session never returns a permanent secret, and a
+// completed session registers a trusted input rather than ready material.
+service AdminUploadService {
+  rpc CreateUpload (CreateUploadRequest) returns (UploadSession) {
+    option (google.api.http) = { post: "/api/admin/v1/uploads" body: "*" };
+  }
+  rpc RenewUpload (RenewUploadRequest) returns (UploadSession) {
+    option (google.api.http) = { post: "/api/admin/v1/uploads/{id}/renew" body: "*" };
+  }
+  rpc CompleteUpload (CompleteUploadRequest) returns (UploadSession) {
+    option (google.api.http) = { post: "/api/admin/v1/uploads/{id}/complete" body: "*" };
+  }
+  rpc CancelUpload (CancelUploadRequest) returns (UploadSession) {
+    option (google.api.http) = { post: "/api/admin/v1/uploads/{id}/cancel" body: "*" };
+  }
+  rpc ListUploads (ListUploadsRequest) returns (UploadSessionSet) {
+    option (google.api.http) = { get: "/api/admin/v1/uploads" };
+  }
+  rpc GetUpload (GetUploadRequest) returns (UploadSession) {
+    option (google.api.http) = { get: "/api/admin/v1/uploads/{id}" };
+  }
+}
+
+// UploadSession is one staging upload of an episode file or a cover.
+message UploadSession {
+  int64 id = 1;
+  int64 revision_id = 2;
+  int64 episode_id = 3;
+  string kind = 4;
+  string status = 5;
+  int32 version = 6;
+  string filename = 7;
+  string content_type = 8;
+  int64 size_bytes = 9;
+  string expected_sha256 = 10;
+  string sha256 = 11;
+  int32 width = 12;
+  int32 height = 13;
+  int64 asset_id = 14;
+  string created_by = 15;
+  int32 revision_version = 16;
+  string expires_at = 17;
+  string completed_at = 18;
+  string created_at = 19;
+  string updated_at = 20;
+  // authorization is only populated by create and renew.
+  UploadAuthorization authorization = 21;
+}
+
+// UploadAuthorization is the short-lived write credential of one object.
+message UploadAuthorization {
+  string url = 1;
+  string method = 2;
+  map<string, string> headers = 3;
+  string expires_at = 4;
+}
+
+// UploadSessionSet is a page of upload sessions.
+message UploadSessionSet {
+  int32 total = 1;
+  int32 page = 2;
+  int32 page_size = 3;
+  repeated UploadSession items = 4;
+}
+
+// CreateUploadRequest opens one staging session.
+message CreateUploadRequest {
+  int64 revision_id = 1 [(google.api.field_behavior) = REQUIRED];
+  int32 expected_revision_version = 2 [(google.api.field_behavior) = REQUIRED];
+  // episode_id is required for kind=episode_input and must be empty for a cover.
+  int64 episode_id = 3;
+  string kind = 4 [(google.api.field_behavior) = REQUIRED];
+  string filename = 5 [(google.api.field_behavior) = REQUIRED];
+  int64 size_bytes = 6 [(google.api.field_behavior) = REQUIRED];
+  string content_type = 7;
+  string expected_sha256 = 8;
+}
+
+// RenewUploadRequest signs the same staging key again.
+message RenewUploadRequest {
+  int64 id = 1 [(google.api.field_behavior) = REQUIRED];
+  int32 expected_version = 2 [(google.api.field_behavior) = REQUIRED];
+}
+
+// CompleteUploadRequest confirms a stored staging object.
+message CompleteUploadRequest {
+  int64 id = 1 [(google.api.field_behavior) = REQUIRED];
+  int32 expected_version = 2 [(google.api.field_behavior) = REQUIRED];
+}
+
+// CancelUploadRequest releases a pending session.
+message CancelUploadRequest {
+  int64 id = 1 [(google.api.field_behavior) = REQUIRED];
+  int32 expected_version = 2 [(google.api.field_behavior) = REQUIRED];
+}
+
+// ListUploadsRequest filters the sessions of a revision.
+message ListUploadsRequest {
+  int64 revision_id = 1;
+  string kind = 2;
+  string status = 3;
+  int32 page = 4;
+  int32 page_size = 5;
+}
+
+// GetUploadRequest selects one session.
+message GetUploadRequest {
+  int64 id = 1 [(google.api.field_behavior) = REQUIRED];
+}
+
+// AdminAuthorizationService owns series-level authorization grants. A grant is
+// append-only: a corrected permission or validity window is a new grant, and
+// an existing one can only be revoked.
+service AdminAuthorizationService {
+  rpc CreateGrant (CreateGrantRequest) returns (AuthorizationGrant) {
+    option (google.api.http) = { post: "/api/admin/v1/series/{id}/authorization-grants" body: "*" };
+  }
+  rpc RevokeGrant (RevokeGrantRequest) returns (AuthorizationGrant) {
+    option (google.api.http) = { post: "/api/admin/v1/authorization-grants/{id}/revoke" body: "*" };
+  }
+  rpc ListGrants (ListGrantsRequest) returns (AuthorizationGrantSet) {
+    option (google.api.http) = { get: "/api/admin/v1/authorization-grants" };
+  }
+  rpc GetGrant (GetGrantRequest) returns (AuthorizationGrant) {
+    option (google.api.http) = { get: "/api/admin/v1/authorization-grants/{id}" };
+  }
+}
+
+// AuthorizationGrant is one series-level authorization record.
+message AuthorizationGrant {
+  int64 id = 1;
+  int64 series_id = 2;
+  string reference = 3;
+  bool allow_process = 4;
+  bool allow_display = 5;
+  bool allow_playback = 6;
+  string valid_from = 7;
+  // valid_until is empty when the system has no end date; it is not a claim
+  // of a perpetual license.
+  string valid_until = 8;
+  string status = 9;
+  int32 version = 10;
+  string confirmed_by = 11;
+  string confirmed_at = 12;
+  string revoked_by = 13;
+  string revoked_at = 14;
+  string revoke_reason = 15;
+  string created_at = 16;
+  string updated_at = 17;
+}
+
+// AuthorizationGrantSet is a page of grants.
+message AuthorizationGrantSet {
+  int32 total = 1;
+  int32 page = 2;
+  int32 page_size = 3;
+  repeated AuthorizationGrant items = 4;
+}
+
+// CreateGrantRequest opens one grant. Permission bits default to false.
+message CreateGrantRequest {
+  int64 id = 1 [(google.api.field_behavior) = REQUIRED];
+  string reference = 2 [(google.api.field_behavior) = REQUIRED];
+  bool allow_process = 3;
+  bool allow_display = 4;
+  bool allow_playback = 5;
+  string valid_from = 6 [(google.api.field_behavior) = REQUIRED];
+  string valid_until = 7;
+}
+
+// RevokeGrantRequest revokes a grant with a version CAS.
+message RevokeGrantRequest {
+  int64 id = 1 [(google.api.field_behavior) = REQUIRED];
+  int32 expected_version = 2 [(google.api.field_behavior) = REQUIRED];
+  string reason = 3 [(google.api.field_behavior) = REQUIRED];
+}
+
+// ListGrantsRequest filters grants.
+message ListGrantsRequest {
+  int64 series_id = 1;
+  string status = 2;
+  int32 page = 3;
+  int32 page_size = 4;
+}
+
+// GetGrantRequest selects one grant.
+message GetGrantRequest {
+  int64 id = 1 [(google.api.field_behavior) = REQUIRED];
+}
+
+// AdminAuthService owns the browser session of a back-office account. The
+// session cookie is HttpOnly; the CSRF token is returned in the body and has
+// to be sent on every mutating call.
+service AdminAuthService {
+  rpc Login (LoginRequest) returns (AdminSessionView) {
+    option (google.api.http) = { post: "/api/admin/v1/auth/login" body: "*" };
+  }
+  rpc GetMe (GetMeRequest) returns (AdminSessionView) {
+    option (google.api.http) = { get: "/api/admin/v1/auth/me" };
+  }
+  rpc Logout (LogoutRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = { post: "/api/admin/v1/auth/logout" body: "*" };
+  }
+}
+
+// AdminStaffService manages back-office accounts. Only an administrator may
+// call it.
+service AdminStaffService {
+  rpc ListStaff (ListStaffRequest) returns (StaffSet) {
+    option (google.api.http) = { get: "/api/admin/v1/staff" };
+  }
+  rpc CreateStaff (CreateStaffRequest) returns (Staff) {
+    option (google.api.http) = { post: "/api/admin/v1/staff" body: "*" };
+  }
+  rpc UpdateStaff (UpdateStaffRequest) returns (Staff) {
+    option (google.api.http) = { patch: "/api/admin/v1/staff/{id}" body: "*" };
+  }
+  rpc ResetPassword (ResetStaffPasswordRequest) returns (Staff) {
+    option (google.api.http) = { post: "/api/admin/v1/staff/{id}/reset-password" body: "*" };
+  }
+}
+
+// Staff is one back-office account. The password hash is never returned.
+message Staff {
+  int64 id = 1;
+  string username = 2;
+  string display_name = 3;
+  string role = 4;
+  bool enabled = 5;
+  int32 version = 6;
+  string last_login_at = 7;
+  string created_at = 8;
+  string updated_at = 9;
+}
+
+// AdminSessionView is the authenticated session of the caller.
+message AdminSessionView {
+  Staff staff = 1;
+  repeated string permissions = 2;
+  string csrf_token = 3;
+  string expires_at = 4;
+}
+
+// StaffSet is a page of accounts.
+message StaffSet {
+  int32 total = 1;
+  int32 page = 2;
+  int32 page_size = 3;
+  repeated Staff items = 4;
+}
+
+// LoginRequest opens a session.
+message LoginRequest {
+  string username = 1 [(google.api.field_behavior) = REQUIRED];
+  string password = 2 [(google.api.field_behavior) = REQUIRED];
+}
+
+message GetMeRequest {}
+message LogoutRequest {}
+
+// ListStaffRequest filters accounts.
+message ListStaffRequest {
+  int32 page = 1;
+  int32 page_size = 2;
+  string role = 3;
+  string q = 4;
+  optional bool enabled = 5;
+}
+
+// CreateStaffRequest adds one account.
+message CreateStaffRequest {
+  string username = 1 [(google.api.field_behavior) = REQUIRED];
+  string display_name = 2;
+  string role = 3 [(google.api.field_behavior) = REQUIRED];
+  string password = 4 [(google.api.field_behavior) = REQUIRED];
+}
+
+// UpdateStaffRequest changes display name, role or enabled state.
+message UpdateStaffRequest {
+  int64 id = 1 [(google.api.field_behavior) = REQUIRED];
+  int32 expected_version = 2 [(google.api.field_behavior) = REQUIRED];
+  optional string display_name = 3;
+  optional string role = 4;
+  optional bool enabled = 5;
+}
+
+// ResetStaffPasswordRequest sets a new password and revokes old sessions.
+message ResetStaffPasswordRequest {
+  int64 id = 1 [(google.api.field_behavior) = REQUIRED];
+  int32 expected_version = 2 [(google.api.field_behavior) = REQUIRED];
+  string new_password = 3 [(google.api.field_behavior) = REQUIRED];
+}
+
+// AdminReviewService is the review worklist and the publication step. A
+// reviewer claims and decides; publication is a separate action available to
+// administrators and operators.
+service AdminReviewService {
+  rpc ListReviews (ListReviewsRequest) returns (ReviewCaseSet) {
+    option (google.api.http) = { get: "/api/admin/v1/reviews" };
+  }
+  rpc GetReview (GetReviewRequest) returns (ReviewDetail) {
+    option (google.api.http) = { get: "/api/admin/v1/reviews/{id}" };
+  }
+  rpc ClaimReview (ClaimReviewRequest) returns (ReviewCase) {
+    option (google.api.http) = { post: "/api/admin/v1/reviews/{id}/claim" body: "*" };
+  }
+  rpc DecideReview (DecideReviewRequest) returns (ReviewCase) {
+    option (google.api.http) = { post: "/api/admin/v1/reviews/{id}/decision" body: "*" };
+  }
+  rpc PublishRevision (PublishRevisionRequest) returns (Publication) {
+    option (google.api.http) = { post: "/api/admin/v1/series/{id}/publications" body: "*" };
+  }
+  rpc UnpublishSeries (UnpublishSeriesRequest) returns (Publication) {
+    option (google.api.http) = { post: "/api/admin/v1/series/{id}/publications/unpublish" body: "*" };
+  }
+  rpc GetPublication (GetPublicationRequest) returns (Publication) {
+    option (google.api.http) = { get: "/api/admin/v1/series/{id}/publication" };
+  }
+}
+
+// ReviewCase is one row of the worklist.
+message ReviewCase {
+  int64 task_id = 1;
+  int64 revision_id = 2;
+  int64 series_id = 3;
+  int64 batch_id = 4;
+  string status = 5;
+  string assignee = 6;
+  string submitted_by = 7;
+  int32 version = 8;
+  string created_at = 9;
+  string series_title = 10;
+  int32 item_total = 11;
+  int32 item_ready = 12;
+  string cover_status = 13;
+}
+
+// ReviewCaseSet is a page of review tasks.
+message ReviewCaseSet {
+  int32 total = 1;
+  int32 page = 2;
+  int32 page_size = 3;
+  repeated ReviewCase items = 4;
+}
+
+// ReviewAsset is one private material with a short-lived preview URL.
+message ReviewAsset {
+  int64 asset_id = 1;
+  string content_type = 2;
+  int64 size_bytes = 3;
+  int64 duration_ms = 4;
+  int32 width = 5;
+  int32 height = 6;
+  string preview_url = 7;
+  string preview_expires_at = 8;
+}
+
+// ReviewEpisode is one selected episode of the revision.
+message ReviewEpisode {
+  int64 episode_id = 1;
+  int32 number = 2;
+  string external_id = 3;
+  ReviewAsset asset = 4;
+}
+
+// ReviewDecision is the final outcome of a task.
+message ReviewDecision {
+  string decision = 1;
+  string reason = 2;
+  string decided_by = 3;
+  string decided_at = 4;
+  int32 task_version = 5;
+  int64 authorization_grant_id = 6;
+  int32 authorization_version = 7;
+}
+
+// ReviewDetail is the review screen payload.
+message ReviewDetail {
+  ReviewCase case = 1;
+  repeated ReviewEpisode episodes = 2;
+  ReviewAsset cover = 3;
+  AuthorizationGrant authorization = 4;
+  ReviewDecision decision = 5;
+}
+
+message ListReviewsRequest {
+  string status = 1;
+  int32 page = 2;
+  int32 page_size = 3;
+}
+
+message GetReviewRequest {
+  int64 id = 1 [(google.api.field_behavior) = REQUIRED];
+}
+
+message ClaimReviewRequest {
+  int64 id = 1 [(google.api.field_behavior) = REQUIRED];
+  int32 expected_version = 2 [(google.api.field_behavior) = REQUIRED];
+}
+
+message DecideReviewRequest {
+  int64 id = 1 [(google.api.field_behavior) = REQUIRED];
+  int32 expected_version = 2 [(google.api.field_behavior) = REQUIRED];
+  // approved or rejected.
+  string decision = 3 [(google.api.field_behavior) = REQUIRED];
+  // Required for a rejection.
+  string reason = 4;
+  // Required for an approval: every item plus at least one loaded episode.
+  ReviewChecklist checklist = 5;
+}
+
+// ReviewChecklist is what a reviewer confirms before an approval.
+message ReviewChecklist {
+  bool title_cover_intro = 1;
+  bool episode_mapping = 2;
+  bool audio_video = 3;
+  bool authorization_public = 4;
+  int32 reviewed_episodes = 5;
+}
+
+// Publication is the published revision of one series.
+message Publication {
+  int64 id = 1;
+  int64 series_id = 2;
+  int64 revision_id = 3;
+  string status = 4;
+  string published_by = 5;
+  string published_at = 6;
+  string unpublished_by = 7;
+  string unpublished_at = 8;
+  int64 authorization_grant_id = 9;
+  int32 authorization_version = 10;
+  int32 version = 11;
+}
+
+message PublishRevisionRequest {
+  int64 id = 1 [(google.api.field_behavior) = REQUIRED];
+  int64 revision_id = 2 [(google.api.field_behavior) = REQUIRED];
+}
+
+message UnpublishSeriesRequest {
+  int64 id = 1 [(google.api.field_behavior) = REQUIRED];
+  int32 expected_version = 2 [(google.api.field_behavior) = REQUIRED];
+  // reason is what the operator states for taking the work down. It is kept on
+  // the audit row, so a later reader knows why it disappeared.
+  string reason = 3;
+}
+
+message GetPublicationRequest {
+  int64 id = 1 [(google.api.field_behavior) = REQUIRED];
+}

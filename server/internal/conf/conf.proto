@@ -1,0 +1,157 @@
+syntax = "proto3";
+package kratos.api;
+
+option go_package = "openduanju-server/internal/conf;conf";
+
+import "google/protobuf/duration.proto";
+
+message Bootstrap {
+  Server server = 1;
+  Data data = 2;
+  Media media = 3;
+  Source source = 4;
+  Admin admin = 5;
+}
+
+message Admin {
+  // auth_token is retired. It is kept in the schema only so an old config
+  // still loads; no call authenticates with it any more.
+  string auth_token = 1 [deprecated = true];
+  // secure_cookie marks the admin session cookie Secure. Production enables
+  // it; the local HTTP browser check leaves it off.
+  bool secure_cookie = 2;
+}
+
+message Server {
+  message HTTP {
+    string network = 1;
+    string addr = 2;
+    google.protobuf.Duration timeout = 3;
+  }
+  message GRPC {
+    string network = 1;
+    string addr = 2;
+    google.protobuf.Duration timeout = 3;
+  }
+  HTTP http = 1;
+  GRPC grpc = 2;
+}
+
+message Data {
+  message Database {
+    // Driver name registered with database/sql, e.g. "mysql".
+    string driver = 1;
+    // Driver-specific DSN. Keep credentials out of version control.
+    string source = 2;
+    // Log every generated statement. Development only.
+    bool debug = 3;
+    // Create or update tables from the ent schema on startup. Leave false in
+    // production and apply migrations as a separate, reviewed step.
+    bool auto_migrate = 4;
+    // expected_name is the database the deployment is supposed to use. When
+    // it is set the server refuses to start when the DSN points somewhere
+    // else, so a mistyped or inherited DSN cannot reach the wrong database.
+    string expected_name = 5;
+  }
+  message Redis {
+    string network = 1;
+    string addr = 2;
+    google.protobuf.Duration read_timeout = 3;
+    google.protobuf.Duration write_timeout = 4;
+  }
+  Database database = 1;
+  Redis redis = 2;
+}
+
+// Media configures the single-episode media pipeline. Secrets are supplied
+// through environment placeholders and never committed.
+message Source {
+  message Worker {
+    google.protobuf.Duration poll_interval = 1;
+    google.protobuf.Duration lease = 2;
+    google.protobuf.Duration page_interval = 3;
+    google.protobuf.Duration detail_interval = 4;
+  }
+  message Scheduler {
+    // poll_interval is how often due plans are looked up.
+    google.protobuf.Duration poll_interval = 1;
+    // batch_size limits how many due plans one tick may fire.
+    int32 batch_size = 2;
+  }
+  message Hongguo {
+    string origin = 1;
+    google.protobuf.Duration timeout = 2;
+    int64 max_bytes = 3;
+    string user_agent = 4;
+  }
+  Hongguo hongguo = 1;
+  Worker worker = 2;
+  Scheduler scheduler = 3;
+}
+
+message Media {
+  // playback_ticket_ttl is the lifetime of a public playback credential. It
+  // is short on purpose: the player refreshes the credential and keeps its
+  // position, its paused state and its speed.
+  string playback_ticket_ttl = 20;
+  message Processor {
+    string ffmpeg_path = 1;
+    string ffprobe_path = 2;
+    // x264 preset and quality. CRF empty keeps the library default.
+    string preset = 3;
+    string crf = 4;
+    string audio_bitrate = 5;
+    google.protobuf.Duration timeout = 6;
+  }
+  message Storage {
+    message COS {
+      string bucket = 1;
+      string region = 2;
+      string secret_id = 3;
+      string secret_key = 4;
+      string session_token = 5;
+      // prefix isolates this environment's objects inside the bucket.
+      string prefix = 6;
+    }
+    message Local {
+      // root is the directory that keeps the objects and their metadata. It
+      // is a development and acceptance backend for the persistent media
+      // pipeline, never a production store.
+      string root = 1;
+      // prefix isolates this environment's objects inside the root.
+      string prefix = 2;
+    }
+    string driver = 1;
+    COS cos = 2;
+    // sign_ttl is the lifetime of a preview credential.
+    google.protobuf.Duration sign_ttl = 3;
+    Local local = 4;
+  }
+  message Resolver {
+    // driver "command" invokes a trusted, operator-supplied SDK bridge.
+    string driver = 1;
+    // command is the bridge executable; it is never built from user input.
+    string command = 2;
+    // args are fixed arguments placed before the episode flags.
+    repeated string args = 3;
+    string quality = 4;
+    google.protobuf.Duration timeout = 5;
+    // profile_path holds the anonymous device profile; never commit it.
+    string profile_path = 6;
+  }
+  message Download {
+    google.protobuf.Duration timeout = 1;
+    int64 max_bytes = 2;
+  }
+  string temp_dir = 1;
+  // profile_version names the fixed delivery profile (MP4/H.264/AAC).
+  string profile_version = 2;
+  int64 max_output_bytes = 3;
+  Processor processor = 4;
+  Storage storage = 5;
+  Resolver resolver = 6;
+  Download download = 7;
+  // source_code names the collection source the worker resolves episodes
+  // from. It is configuration, not request input.
+  string source_code = 8;
+}

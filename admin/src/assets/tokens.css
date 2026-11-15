@@ -1,0 +1,57 @@
+/* 映刻 B 端设计令牌。数值与 web/src/assets/tokens.css 保持同一组，差异只在 Element Plus 的映射。
+   页面样式只允许引用这里的变量，不再写死颜色、间距与圆角。 */
+:root {
+  --brand: #e23a4e;
+  --brand-strong: #c22a3d;
+  --brand-weak: #fdecef;
+  --ink-900: #14161c;
+  --ink-700: #333a45;
+  --ink-600: #5a6270;
+  --ink-400: #8b93a1;
+  --ink-300: #b3bac5;
+  --surface: #ffffff;
+  --surface-2: #f5f6f8;
+  --surface-3: #eef0f3;
+  --border: #e8eaee;
+  --border-strong: #d6dae1;
+  --ok: #1f8a52;
+  --ok-weak: #e8f5ee;
+  --warn: #a86612;
+  --warn-weak: #fdf3e3;
+  --danger: #c22a3d;
+  --danger-weak: #fdecef;
+  --focus: #1e6ff2;
+
+  --font-cn:
+    'Noto Sans SC', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', system-ui, sans-serif;
+  --fs-11: 11px;
+  --fs-12: 12px;
+  --fs-13: 13px;
+  --fs-14: 14px;
+  --fs-16: 16px;
+  --fs-18: 18px;
+  --fs-22: 22px;
+  --fs-28: 28px;
+  --fs-34: 34px;
+  --lh-tight: 1.25;
+  --lh-body: 1.6;
+
+  --sp-1: 4px;
+  --sp-2: 8px;
+  --sp-3: 12px;
+  --sp-4: 16px;
+  --sp-5: 24px;
+  --sp-6: 32px;
+  --sp-7: 48px;
+  --sp-8: 64px;
+  --r-sm: 6px;
+  --r-md: 10px;
+  --r-lg: 14px;
+  --r-pill: 999px;
+  --shadow-1: 0 1px 2px rgba(20, 22, 28, 0.06);
+  --shadow-2: 0 6px 24px rgba(20, 22, 28, 0.1);
+  --shadow-3: 0 18px 48px rgba(20, 22, 28, 0.16);
+  --w-page: 1200px;
+  --head-h: 64px;
+  --touch: 44px;
+}

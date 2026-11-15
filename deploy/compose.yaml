@@ -1,0 +1,87 @@
+name: openduanju-rebuild
+services:
+  mysql:
+    image: mysql:8.4
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?set MYSQL_ROOT_PASSWORD in .env}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-openduanju_dev}
+      MYSQL_USER: ${MYSQL_USER:-openduanju}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:?set MYSQL_PASSWORD in .env}
+    ports:
+      - "127.0.0.1:13380:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD-SHELL", 'MYSQL_PWD="$$MYSQL_ROOT_PASSWORD" mysqladmin ping -h 127.0.0.1 --silent']
+      interval: 5s
+      timeout: 3s
+      retries: 30
+  redis:
+    image: redis:7.4-alpine
+    ports:
+      - "127.0.0.1:16380:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+  server:
+    build:
+      context: ../server
+      args:
+        VERSION: ${APP_VERSION:-0.1.0}
+    environment:
+      KRATOS_DATABASE_SOURCE: "${MYSQL_USER:-openduanju}:${MYSQL_PASSWORD:?set MYSQL_PASSWORD}@tcp(mysql:3306)/${MYSQL_DATABASE:-openduanju_dev}?parseTime=true&loc=UTC&charset=utf8mb4"
+      KRATOS_DATABASE_EXPECTED_NAME: "${MYSQL_DATABASE:-openduanju_dev}"
+      # The shared bearer token is retired: admin calls authenticate with a
+      # staff session. The first administrator is created by the one-shot
+      # openduanju-staff-init command while the server is stopped.
+      KRATOS_MEDIA_PLAYBACK_TICKET_TTL: "${KRATOS_MEDIA_PLAYBACK_TICKET_TTL:-10m}"
+      # The container acceptance uses the controlled local driver; a real
+      # deployment points MEDIA_STORAGE_DRIVER at COS with its credentials.
+      KRATOS_MEDIA_STORAGE_DRIVER: "${KRATOS_MEDIA_STORAGE_DRIVER:-local}"
+      # The media resolver: the command bridge or the locked SDK adapter.
+      KRATOS_MEDIA_RESOLVER_DRIVER: "${KRATOS_MEDIA_RESOLVER_DRIVER:-command}"
+      # Real COS credentials come from the local private configuration. The
+      # compose file maps them onto the configuration tree; the values never
+      # reach the repository or the evidence.
+      KRATOS_MEDIA_STORAGE_COS_BUCKET: "${KRATOS_COS_BUCKET:-}"
+      KRATOS_MEDIA_STORAGE_COS_REGION: "${KRATOS_COS_REGION:-}"
+      KRATOS_MEDIA_STORAGE_COS_SECRET_ID: "${KRATOS_COS_SECRET_ID:-}"
+      KRATOS_MEDIA_STORAGE_COS_SECRET_KEY: "${KRATOS_COS_SECRET_KEY:-}"
+      KRATOS_MEDIA_STORAGE_COS_SESSION_TOKEN: "${KRATOS_COS_SESSION_TOKEN:-}"
+      KRATOS_MEDIA_STORAGE_COS_PREFIX: "${KRATOS_COS_PREFIX:-openduanju-media}"
+      KRATOS_MEDIA_STORAGE_LOCAL_ROOT: "${KRATOS_MEDIA_STORAGE_LOCAL_ROOT:-/var/lib/openduanju/media}"
+      KRATOS_MEDIA_TEMP_DIR: "${KRATOS_MEDIA_TEMP_DIR:-/var/lib/openduanju/tmp}"
+      # The SDK profile and the collected archives live on the same volume.
+      KRATOS_HONGGUO_PROFILE_PATH: "${KRATOS_HONGGUO_PROFILE_PATH:-/var/lib/openduanju/hongguo/anonymous.json}"
+      KRATOS_REDIS_ADDR: redis:6379
+    ports:
+      - "127.0.0.1:18000:8000"
+      - "127.0.0.1:19000:9000"
+    volumes:
+      - media_data:/var/lib/openduanju
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+  admin:
+    build:
+      context: ..
+      dockerfile: admin/Dockerfile
+    depends_on:
+      - server
+    ports:
+      - "127.0.0.1:18081:80"
+  web:
+    build:
+      context: ..
+      dockerfile: web/Dockerfile
+    depends_on:
+      - server
+    ports:
+      - "127.0.0.1:18082:80"
+volumes:
+  mysql_data:
+  media_data:

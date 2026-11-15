@@ -1,0 +1,28 @@
+{
+  "name": "openduanju",
+  "version": "0.1.0",
+  "private": true,
+  "workspaces": [
+    "admin",
+    "web"
+  ],
+  "engines": {
+    "node": ">=22.18.0 <23",
+    "npm": ">=11 <13"
+  },
+  "scripts": {
+    "dev:admin": "npm run dev -w admin",
+    "dev:web": "npm run dev -w web",
+    "build": "npm run build --workspaces",
+    "type-check": "npm run type-check --workspaces",
+    "lint": "npm run lint --workspaces",
+    "format": "npm run format --workspaces",
+    "format:check": "npm run format:check --workspaces",
+    "test": "npm run test:unit --workspaces -- --run",
+    "test:e2e": "npm run test:e2e --workspaces"
+  },
+  "overrides": {
+    "minimatch": "11.0.8",
+    "glob": "14.0.6"
+  }
+}
