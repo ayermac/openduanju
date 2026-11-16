@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
 import {
   ElAlert,
   ElButton,
@@ -89,6 +89,16 @@ const keyword = ref('')
 const entries = ref<SourceEntry[]>([])
 // candidateView is the read-only snapshot of one candidate.
 const candidateView = ref<{ candidate: Candidate; episodes: SourceEpisode[] } | null>(null)
+const snapshotLoadingId = ref<number | null>(null)
+const snapshotError = ref('')
+const snapshotPage = ref(1)
+const snapshotPageSize = 20
+const snapshotCard = ref<HTMLElement | null>(null)
+const snapshotEpisodes = computed(() => {
+  const episodes = candidateView.value?.episodes ?? []
+  const start = (snapshotPage.value - 1) * snapshotPageSize
+  return episodes.slice(start, start + snapshotPageSize)
+})
 // runRows are the stored rows one collection run produced.
 const runRows = ref<RunItem[]>([])
 const runRowsTotal = ref(0)
@@ -402,14 +412,33 @@ function applySeries(data: SeriesDetail) {
     .map((episode) => episode.external_id)
 }
 
-// viewCandidateById opens the current snapshot of one candidate, read-only.
-async function viewCandidateById(candidateId: number) {
+// presentSnapshot shows the local candidate without creating a series.
+async function presentSnapshot(detail: { candidate: Candidate; episodes: SourceEpisode[] }) {
+  snapshotError.value = ''
+  snapshotPage.value = 1
+  candidateView.value = { candidate: detail.candidate, episodes: detail.episodes ?? [] }
+  await nextTick()
+  snapshotCard.value?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+}
+
+// loadSnapshot reads one candidate. Failures stay on this page instead of the
+// selection card, which is hidden until a series exists.
+async function loadSnapshot(candidateId: number) {
+  snapshotError.value = ''
+  snapshotLoadingId.value = candidateId
   try {
-    const detail = await getCandidate(candidateId)
-    candidateView.value = { candidate: detail.candidate, episodes: detail.episodes ?? [] }
+    await presentSnapshot(await getCandidate(candidateId))
   } catch (error) {
-    seriesError.value = describeError(error)
+    snapshotError.value = describeError(error)
+    ElMessage.error(snapshotError.value)
+  } finally {
+    snapshotLoadingId.value = null
   }
+}
+
+// viewCandidateById opens the current snapshot of one candidate, read-only.
+function viewCandidateById(candidateId: number) {
+  return loadSnapshot(candidateId)
 }
 
 // openRunCandidate jumps from an execution detail to the candidate it
@@ -420,24 +449,13 @@ async function openRunCandidate(runId: number) {
     ElMessage.info('该运行没有关联候选')
     return
   }
-  try {
-    const detail = await getCandidate(run.candidate_id)
-    candidateView.value = { candidate: detail.candidate, episodes: detail.episodes ?? [] }
-  } catch (error) {
-    listError.value = describeError(error)
-  }
+  await loadSnapshot(run.candidate_id)
 }
 
 // viewCandidate opens a candidate read-only: the snapshot and its source
 // episodes. It never creates a series.
-async function viewCandidate(candidate: Candidate) {
-  seriesError.value = ''
-  try {
-    const detail = await getCandidate(candidate.id)
-    candidateView.value = { candidate: detail.candidate, episodes: detail.episodes ?? [] }
-  } catch (error) {
-    seriesError.value = describeError(error)
-  }
+function viewCandidate(candidate: Candidate) {
+  return loadSnapshot(candidate.id)
 }
 
 // loadRunRows reads the stored rows of one run with their results. The rows
@@ -781,7 +799,13 @@ onBeforeUnmount(() => {
         </ElTableColumn>
         <ElTableColumn label="操作" width="220" fixed="right">
           <template #default="{ row }">
-            <ElButton size="small" plain @click="openRow(row)">查看快照</ElButton>
+            <ElButton
+              size="small"
+              plain
+              :loading="snapshotLoadingId === row.id"
+              @click="openRow(row)"
+              >查看快照</ElButton
+            >
             <ElButton
               size="small"
               type="primary"
@@ -807,6 +831,57 @@ onBeforeUnmount(() => {
         />
       </div>
     </ElCard>
+
+    <div ref="snapshotCard">
+      <ElCard v-if="candidateView" shadow="never" class="panel">
+        <template #header>
+          <div class="panel-title">
+            <strong>候选快照 · {{ candidateView.candidate.title || '未命名' }}</strong>
+            <span>只读本地快照，不会创建内容</span>
+          </div>
+        </template>
+        <div class="series-meta">
+          <ElTag
+            :type="candidateView.candidate.completeness === 'complete' ? 'success' : 'warning'"
+            effect="plain"
+          >
+            {{
+              completenessLabel[candidateView.candidate.completeness] ??
+              candidateView.candidate.completeness
+            }}
+          </ElTag>
+          <span>
+            {{ candidateView.candidate.source_code }} / {{ candidateView.candidate.channel }} · 来源
+            {{ candidateView.candidate.external_id }} · 总集数
+            {{ candidateView.candidate.episode_count }} · 快照
+            {{ candidateView.episodes.length }} 集
+          </span>
+        </div>
+        <p class="snapshot-copy">{{ candidateView.candidate.description || '简介未记录' }}</p>
+        <p class="snapshot-copy">
+          最近观察 {{ formatTime(candidateView.candidate.last_seen_at) }} · 详情
+          {{ formatTime(candidateView.candidate.detail_fetched_at) }} · 分集
+          {{ formatTime(candidateView.candidate.episodes_fetched_at) }} · 指纹
+          {{ candidateView.candidate.content_hash || '未记录' }}
+        </p>
+        <ElTable :data="snapshotEpisodes" size="small" empty-text="没有分集快照">
+          <ElTableColumn prop="number" label="集号" width="80" />
+          <ElTableColumn label="标题" min-width="180">
+            <template #default="{ row }">{{ row.title || '—' }}</template>
+          </ElTableColumn>
+          <ElTableColumn prop="external_id" label="来源分集" min-width="180" />
+        </ElTable>
+        <div v-if="candidateView.episodes.length > snapshotPageSize" class="pager">
+          <span>共 {{ candidateView.episodes.length }} 集</span>
+          <ElPagination
+            v-model:current-page="snapshotPage"
+            :page-size="snapshotPageSize"
+            :total="candidateView.episodes.length"
+            layout="prev, pager, next"
+          />
+        </div>
+      </ElCard>
+    </div>
 
     <ElCard v-if="series" shadow="never" class="panel">
       <template #header>
@@ -972,6 +1047,12 @@ onBeforeUnmount(() => {
 }
 .panel {
   margin-bottom: 20px;
+}
+.snapshot-copy {
+  margin: 0 0 12px;
+  color: var(--el-text-color-regular);
+  line-height: 1.6;
+  white-space: pre-wrap;
 }
 .panel-title {
   display: flex;
