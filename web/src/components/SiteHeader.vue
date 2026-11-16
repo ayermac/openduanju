@@ -36,7 +36,6 @@ function submit() {
           type="search"
           placeholder="搜索片名或简介"
           autocomplete="off"
-          @keyup.enter="submit"
         />
         <button type="submit">搜索</button>
       </form>
@@ -158,8 +157,13 @@ function submit() {
   .search {
     max-width: none;
   }
+  .search input {
+    height: 44px;
+  }
   .search button {
-    padding: 0 var(--sp-4);
+    min-width: 44px;
+    height: 44px;
+    padding: 0 12px;
   }
 }
 </style>

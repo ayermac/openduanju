@@ -3,6 +3,8 @@ import {
   chooseEpisode,
   loadProgress,
   progressKey,
+  removeSeriesProgress,
+  clearWatchHistory,
   saveProgress,
   seriesProgress,
   type EpisodeChoice,
@@ -56,6 +58,28 @@ describe('watch history', () => {
     expect(seriesProgress('1')?.episodeId).toBe('15')
     expect(seriesProgress('2')?.episodeId).toBe('21')
     expect(seriesProgress('3')).toBeNull()
+  })
+
+  it('removes every episode record of one series when its card is deleted', () => {
+    store('1', '11', 12, 1000)
+    store('1', '15', 60, 3000)
+    store('2', '21', 5, 2000)
+    removeSeriesProgress('1')
+    expect(loadProgress('1', '11')).toBeNull()
+    expect(loadProgress('1', '15')).toBeNull()
+    expect(loadProgress('2', '21')?.position).toBe(5)
+    expect(seriesProgress('1')).toBeNull()
+  })
+
+  it('clears only this project watch history without localStorage.clear', () => {
+    window.localStorage.setItem('other-project-value', 'keep')
+    store('1', '11', 12, 1000)
+    store('2', '21', 5, 2000)
+    clearWatchHistory()
+    expect(seriesProgress('1')).toBeNull()
+    expect(seriesProgress('2')).toBeNull()
+    expect(window.localStorage.getItem('other-project-value')).toBe('keep')
+    expect(window.localStorage.getItem(progressKey('1', '11'))).toBeNull()
   })
 
   it('opens the episode the link named', () => {

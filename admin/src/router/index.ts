@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import HomeView from '../views/HomeView.vue'
 import { currentSession, loadSession } from '@/api/session'
+import { UNAUTHORIZED_EVENT } from '@/api/client'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -76,6 +77,12 @@ const router = createRouter({
       component: () => import('../views/ForbiddenView.vue'),
       meta: { title: '无权限' },
     },
+    {
+      path: '/:pathMatch(.*)*',
+      name: 'not-found',
+      component: () => import('../views/NotFoundView.vue'),
+      meta: { title: '页面不存在' },
+    },
   ],
 })
 
@@ -98,6 +105,17 @@ router.beforeEach(async (to) => {
 router.afterEach((to) => {
   const title = typeof to.meta.title === 'string' ? to.meta.title : ''
   document.title = title ? `${title} · 映刻运营后台` : '映刻运营后台'
+})
+
+// A 401 from any guarded call brings the user back to login with the current
+// internal path. Only same-origin paths are carried as `next`.
+window.addEventListener(UNAUTHORIZED_EVENT, (event) => {
+  const detail = (event as CustomEvent<{ next?: string }>).detail ?? {}
+  const next =
+    detail.next && detail.next.startsWith('/') && !detail.next.startsWith('//') ? detail.next : '/'
+  if (router.currentRoute.value.name !== 'login') {
+    void router.replace({ name: 'login', query: { next } })
+  }
 })
 
 export default router

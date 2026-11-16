@@ -242,8 +242,10 @@ const kindLabel: Record<string, string> = {
 }
 
 const inputLabel = (state: EpisodeState): string => {
-  if (!state.session) return state.file ? '已选择，未上传' : '未选择文件'
-  return statusLabel[state.session.status] ?? state.session.status
+  const fileText = state.file ? `${state.file.name} · ${formatBytes(state.file.size)}` : ''
+  if (!state.session) return fileText ? `${fileText} · 已选择，未上传` : '未选择文件'
+  const status = statusLabel[state.session.status] ?? state.session.status
+  return fileText ? `${fileText} · ${status}` : status
 }
 
 const completedCount = computed(
@@ -275,7 +277,6 @@ onMounted(() => {
           上传只登记为可信输入；视频仍走统一的校验、处理、上传与对象确认，封面经服务端解码校验后固化为私有对象。
         </p>
       </div>
-      <SessionBar />
     </section>
 
     <ElCard shadow="never" class="panel">

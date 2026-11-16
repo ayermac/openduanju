@@ -549,7 +549,6 @@ onBeforeUnmount(() => {
         <h1>来源采集与本地选剧</h1>
         <p>采集任务持久化异步执行；详情与完整分集在采集阶段入库，选剧和勾选只读本地快照。</p>
       </div>
-      <SessionBar />
     </section>
 
     <ElCard shadow="never" class="panel">

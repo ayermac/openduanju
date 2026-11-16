@@ -70,6 +70,7 @@ const unpublishTarget = ref('')
 // only what the operator writes. The request id is created with the form so a
 // double click returns the work that already exists.
 const showNewWork = ref(false)
+const showCloseConfirm = ref(false)
 const newWork = ref({ title: '', description: '' })
 const newWorkEpisodes = ref<number[]>([1])
 const newWorkError = ref('')
@@ -217,6 +218,32 @@ function openNewWork() {
 function requestID(): string {
   if (typeof crypto !== 'undefined' && 'randomUUID' in crypto) return crypto.randomUUID()
   return `manual-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`
+}
+
+const newWorkDirty = computed(
+  () =>
+    newWork.value.title.trim() !== '' ||
+    newWork.value.description.trim() !== '' ||
+    newWorkEpisodes.value.length !== 1 ||
+    newWorkEpisodes.value[0] !== 1,
+)
+
+// Element Plus asks before closing on Esc, mask and the close button. We keep
+// the form open until the operator explicitly chooses to continue or discard.
+function guardNewWorkClose(done: () => void) {
+  if (!newWorkDirty.value && !creatingWork.value) {
+    done()
+    return
+  }
+  showCloseConfirm.value = true
+}
+
+function discardNewWork() {
+  showCloseConfirm.value = false
+  showNewWork.value = false
+  newWork.value = { title: '', description: '' }
+  newWorkEpisodes.value = [1]
+  newWorkError.value = ''
 }
 
 function addEpisode() {
@@ -572,7 +599,14 @@ onMounted(() => {
       </template>
     </ElDialog>
 
-    <ElDialog v-model="showNewWork" title="新建作品（人工创建）" width="600px">
+    <ElDialog
+      :model-value="showNewWork"
+      title="新建作品（人工创建）"
+      width="600px"
+      :close-on-click-modal="false"
+      :before-close="guardNewWorkClose"
+      @update:model-value="guardNewWorkClose(() => {})"
+    >
       <p class="muted">
         人工创建不依赖来源，不会写入来源或外部ID，也不会下载、处理或送审。保存后是工作草稿，
         分集需要逐个上传视频，封面单独上传，再按现有流程提交审核与发布。
@@ -607,8 +641,21 @@ onMounted(() => {
       </div>
       <ElAlert v-if="newWorkError" type="error" :closable="false" :title="newWorkError" show-icon />
       <template #footer>
-        <ElButton @click="showNewWork = false">取消</ElButton>
+        <ElButton @click="guardNewWorkClose(() => {})">取消</ElButton>
         <ElButton type="primary" :loading="creatingWork" @click="submitNewWork">保存草稿</ElButton>
+      </template>
+    </ElDialog>
+
+    <ElDialog
+      :model-value="showCloseConfirm"
+      title="关闭会丢失未保存内容"
+      width="420px"
+      @update:model-value="showCloseConfirm = false"
+    >
+      <p>关闭会丢失未保存内容。继续编辑保留；放弃修改会清空并关闭。</p>
+      <template #footer>
+        <ElButton @click="showCloseConfirm = false">继续编辑</ElButton>
+        <ElButton type="danger" :disabled="creatingWork" @click="discardNewWork">放弃修改</ElButton>
       </template>
     </ElDialog>
 

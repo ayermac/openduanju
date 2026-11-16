@@ -136,3 +136,100 @@ a {
     margin-left: 0;
   }
 }
+
+/* Keep Element Plus tables inside their cards on narrow viewports and during
+   1440 <-> 1024 <-> 768 resizes. The table scrolls internally; the page does
+   not stretch. */
+.el-table {
+  width: 100%;
+  min-width: 0;
+}
+.el-table__inner-wrapper {
+  min-width: 0;
+}
+
+/* Form rows wrap before they push the page wider than the viewport. */
+.submit-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: flex-end;
+}
+.submit-row label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 140px;
+}
+.submit-row .el-input-number,
+.submit-row .el-select,
+.submit-row .el-date-editor {
+  width: 180px;
+}
+
+/* One shared page rhythm for card-based admin screens. */
+.media,
+.sources,
+.catalog,
+.content {
+  display: grid;
+  gap: 16px;
+  min-width: 0;
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 16px;
+}
+.media .heading,
+.catalog .heading,
+.sources .heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  min-width: 0;
+}
+.media .heading p,
+.catalog .heading p,
+.sources .heading p {
+  margin: 4px 0 0;
+  color: var(--ink-600);
+  font-size: var(--fs-13);
+}
+.panel-title {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  min-width: 0;
+}
+.panel-title span {
+  color: var(--ink-600);
+  font-size: var(--fs-12);
+  white-space: normal;
+}
+.pager {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 12px;
+}
+
+@media (max-width: 768px) {
+  .media,
+  .sources,
+  .catalog {
+    padding: 12px;
+  }
+  .panel-title {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .submit-row label {
+    min-width: 0;
+    width: 100%;
+  }
+  .submit-row .el-input-number,
+  .submit-row .el-select,
+  .submit-row .el-date-editor {
+    width: 100%;
+  }
+}

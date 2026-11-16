@@ -4,8 +4,10 @@ import {
   ElAlert,
   ElButton,
   ElCard,
+  ElDialog,
   ElInput,
   ElOption,
+  ElPagination,
   ElSelect,
   ElTable,
   ElTableColumn,
@@ -24,9 +26,19 @@ import {
 
 const staff = ref<Staff[]>([])
 const total = ref(0)
+const page = ref(1)
+const pageSize = ref(20)
 const loading = ref(false)
 const error = ref('')
 const roleFilter = ref('')
+
+// Dangerous account actions are confirmed against the exact account. The
+// dialog is not a substitute for the server-side version and permission checks.
+const confirmAction = ref<{ target: Staff; nextEnabled: boolean } | null>(null)
+const roleAction = ref<{ target: Staff; next: StaffRole } | null>(null)
+const resetAction = ref<Staff | null>(null)
+const newPassword = ref('')
+const resetBusy = ref(false)
 
 const username = ref('')
 const displayName = ref('')
@@ -39,11 +51,16 @@ function describeError(err: unknown): string {
   return err instanceof ApiError ? `${err.reason}：${err.message}` : String(err)
 }
 
-async function load() {
+async function load(resetPage = false) {
+  if (resetPage) page.value = 1
   loading.value = true
   error.value = ''
   try {
-    const set = await listStaff({ role: roleFilter.value || undefined })
+    const set = await listStaff({
+      page: page.value,
+      pageSize: pageSize.value,
+      role: roleFilter.value || undefined,
+    })
     staff.value = set.items ?? []
     total.value = set.total
   } catch (err) {
@@ -79,43 +96,69 @@ async function submit() {
   }
 }
 
-async function toggle(row: unknown) {
-  const target = row as Staff
+async function confirmToggle() {
+  if (!confirmAction.value) return
+  const target = confirmAction.value.target
   const enabled = target.enabled === true
   try {
     await updateStaff(target.id, target.version, { enabled: !enabled })
     ElMessage.success(enabled ? '账号已停用，其会话已撤销' : '账号已启用')
+    confirmAction.value = null
     await load()
   } catch (err) {
+    confirmAction.value = null
     error.value = describeError(err)
   }
 }
 
-async function changeRole(row: unknown, next: string) {
-  const target = row as Staff
-  try {
-    await updateStaff(target.id, target.version, { role: next as StaffRole })
-    ElMessage.success('角色已更新')
-    await load()
-  } catch (err) {
-    error.value = describeError(err)
+async function confirmReset() {
+  if (!resetAction.value) return
+  const secret = newPassword.value
+  if (secret.length < 12) {
+    error.value = '新密码至少12位'
+    return
   }
-}
-
-async function reset(row: unknown) {
-  const target = row as Staff
-  const secret = window.prompt(`为 ${target.username} 设置新密码（至少12位，旧会话会立即失效）`)
-  if (!secret) return
+  resetBusy.value = true
   try {
-    await resetPassword(target.id, target.version, secret)
+    await resetPassword(resetAction.value.id, resetAction.value.version, secret)
     ElMessage.success('密码已重置，旧会话已失效')
+    resetAction.value = null
+    newPassword.value = ''
     await load()
   } catch (err) {
+    error.value = describeError(err)
+  } finally {
+    resetBusy.value = false
+  }
+}
+
+async function confirmRole() {
+  if (!roleAction.value) return
+  const target = roleAction.value.target
+  try {
+    await updateStaff(target.id, target.version, { role: roleAction.value.next })
+    ElMessage.success('角色已更新')
+    roleAction.value = null
+    await load()
+  } catch (err) {
+    roleAction.value = null
     error.value = describeError(err)
   }
 }
 
-onMounted(load)
+function changePage(next: number) {
+  page.value = next
+  void load()
+}
+
+function changePageSize(next: number) {
+  pageSize.value = next
+  void load(true)
+}
+
+onMounted(() => {
+  void load()
+})
 </script>
 
 <template>
@@ -127,7 +170,6 @@ onMounted(load)
           管理员创建、停用账号并重置密码；停用或重置后该账号的会话立即失效。角色边界由服务端判定。
         </p>
       </div>
-      <SessionBar />
     </section>
 
     <ElCard shadow="never" class="panel">
@@ -163,12 +205,18 @@ onMounted(load)
       </template>
       <ElAlert v-if="error" type="error" :closable="false" :title="error" show-icon />
       <div class="toolbar">
-        <ElSelect v-model="roleFilter" placeholder="全部角色" clearable size="small">
+        <ElSelect
+          v-model="roleFilter"
+          placeholder="全部角色"
+          clearable
+          size="small"
+          @change="load(true)"
+        >
           <ElOption label="管理员" value="admin" />
           <ElOption label="运营" value="operator" />
           <ElOption label="审核员" value="reviewer" />
         </ElSelect>
-        <ElButton size="small" :loading="loading" @click="load">查询</ElButton>
+        <ElButton size="small" :loading="loading" @click="load(true)">查询</ElButton>
         <span class="hint">共 {{ total }} 个账号</span>
       </div>
       <ElTable :data="staff" empty-text="暂无账号">
@@ -180,7 +228,7 @@ onMounted(load)
             <ElSelect
               :model-value="row.role"
               size="small"
-              @change="changeRole(row, String($event))"
+              @change="roleAction = { target: row as Staff, next: String($event) as StaffRole }"
             >
               <ElOption label="管理员" value="admin" />
               <ElOption label="运营" value="operator" />
@@ -198,14 +246,93 @@ onMounted(load)
         <ElTableColumn prop="version" label="版本" width="70" />
         <ElTableColumn label="操作" width="220">
           <template #default="{ row }">
-            <ElButton size="small" @click="toggle(row)">{{
-              row.enabled === true ? '停用' : '启用'
-            }}</ElButton>
-            <ElButton size="small" @click="reset(row)">重置密码</ElButton>
+            <ElButton
+              size="small"
+              @click="confirmAction = { target: row as Staff, nextEnabled: row.enabled !== true }"
+              >{{ row.enabled === true ? '停用' : '启用' }}</ElButton
+            >
+            <ElButton size="small" @click="resetAction = row as Staff">重置密码</ElButton>
           </template>
         </ElTableColumn>
       </ElTable>
+      <div class="pager">
+        <ElPagination
+          layout="prev, pager, next, sizes"
+          :current-page="page"
+          :page-size="pageSize"
+          :page-sizes="[10, 20, 50]"
+          :total="total"
+          :disabled="loading"
+          @current-change="changePage"
+          @size-change="changePageSize"
+        />
+      </div>
     </ElCard>
+
+    <ElDialog
+      :model-value="Boolean(confirmAction)"
+      :title="
+        confirmAction
+          ? `${confirmAction.target.enabled === true ? '停用账号' : '启用账号'} ${confirmAction.target.username}`
+          : ''
+      "
+      width="460px"
+      @update:model-value="confirmAction = null"
+    >
+      <template v-if="confirmAction">
+        <p>
+          对象：<strong>{{ confirmAction.target.username }}</strong
+          >（ID #{{ confirmAction.target.id }}，版本 v{{ confirmAction.target.version }}）。
+        </p>
+        <p v-if="confirmAction.target.enabled === true">该账号已有会话会立即失效。</p>
+        <p v-else>启用后该账号可重新登录，权限仍由服务端判定。</p>
+      </template>
+      <template #footer>
+        <ElButton @click="confirmAction = null">取消</ElButton>
+        <ElButton type="primary" :loading="loading" @click="confirmToggle">{{
+          confirmAction?.target.enabled === true ? '确认停用' : '确认启用'
+        }}</ElButton>
+      </template>
+    </ElDialog>
+
+    <ElDialog
+      :model-value="Boolean(roleAction)"
+      title="修改角色"
+      width="460px"
+      @update:model-value="roleAction = null"
+    >
+      <p v-if="roleAction">
+        将 <strong>{{ roleAction.target.username }}</strong> 从 {{ roleAction.target.role }} 改为
+        {{ roleAction.next }}；新角色在确认后生效。
+      </p>
+      <template #footer>
+        <ElButton @click="roleAction = null">取消</ElButton>
+        <ElButton type="primary" :loading="loading" @click="confirmRole">确认修改</ElButton>
+      </template>
+    </ElDialog>
+
+    <ElDialog
+      :model-value="Boolean(resetAction)"
+      :title="resetAction ? `重置 ${resetAction.username} 的密码` : ''"
+      width="460px"
+      @update:model-value="resetAction = null"
+    >
+      <label class="field">
+        新密码
+        <ElInput
+          v-model="newPassword"
+          type="password"
+          show-password
+          autocomplete="new-password"
+          aria-label="新密码"
+        />
+      </label>
+      <p class="hint">至少12位；确认后该账号旧会话立即失效。</p>
+      <template #footer>
+        <ElButton @click="resetAction = null">取消</ElButton>
+        <ElButton type="primary" :loading="resetBusy" @click="confirmReset">确认重置</ElButton>
+      </template>
+    </ElDialog>
   </main>
 </template>
 
@@ -213,5 +340,16 @@ onMounted(load)
 .hint {
   color: var(--el-text-color-secondary);
   font-size: 12px;
+}
+.pager {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 12px;
+}
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 10px;
 }
 </style>

@@ -15,8 +15,8 @@ const router = createRouter({
     {
       path: '/:pathMatch(.*)*',
       name: 'not-found',
-      component: HomeView,
-      meta: { title: '映刻 · 已发布短剧' },
+      component: () => import('../views/NotFoundView.vue'),
+      meta: { title: '页面不存在' },
     },
   ],
   scrollBehavior(_to, _from, saved) {

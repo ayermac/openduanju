@@ -10,7 +10,12 @@ import {
   fetchSeries,
   type SeriesCard as SeriesCardData,
 } from '@/api/web'
-import { recentSeries, type WatchProgress } from '@/stores/history'
+import {
+  clearWatchHistory,
+  recentSeries,
+  removeSeriesProgress,
+  type WatchProgress,
+} from '@/stores/history'
 
 const PAGE_SIZE = 24
 
@@ -23,6 +28,7 @@ const category = ref('')
 const loading = ref(false)
 const error = ref('')
 const history = ref<WatchProgress[]>([])
+let listRequest = 0
 
 const hasFilters = computed(() => keyword.value.trim() !== '' || category.value !== '')
 const heading = computed(() => (category.value ? category.value : '最近发布'))
@@ -35,8 +41,10 @@ function describe(err: unknown): string {
 
 // load fetches one page of the public list. The same call serves the landing
 // list, a search and a category filter, so the total and the paging stay
-// honest no matter how the visitor arrived.
+// honest no matter how the visitor arrived. Every call carries a request id;
+// only the newest query may write the list.
 async function load(reset: boolean) {
+  const requestId = ++listRequest
   if (reset) {
     page.value = 1
   }
@@ -49,19 +57,24 @@ async function load(reset: boolean) {
       page: page.value,
       pageSize: PAGE_SIZE,
     })
+    if (requestId !== listRequest) return
     const pageItems = set.items ?? []
     items.value = reset ? pageItems : [...items.value, ...pageItems]
     // A zero total is omitted from the JSON (proto3 default), so an absent
     // field means "none", not "unknown".
     total.value = set.total ?? 0
   } catch (err) {
+    if (requestId !== listRequest) return
     error.value = describe(err)
     if (reset) {
       items.value = []
       total.value = 0
+    } else {
+      // The failed page stays current, so a retry does not silently skip it.
+      page.value = Math.max(1, page.value - 1)
     }
   } finally {
-    loading.value = false
+    if (requestId === listRequest) loading.value = false
   }
 }
 
@@ -77,6 +90,9 @@ async function loadCategories() {
 }
 
 function onSearch(value: string) {
+  // The form is the only submit path; an unchanged query that is still in
+  // flight does not need another request, while a changed query may supersede it.
+  if (loading.value && keyword.value === value && category.value === '') return
   keyword.value = value
   void load(true)
 }
@@ -90,6 +106,19 @@ function clearFilters() {
   keyword.value = ''
   category.value = ''
   void load(true)
+}
+
+function removeHistorySeries(seriesId: string) {
+  removeSeriesProgress(seriesId)
+  history.value = recentSeries()
+}
+
+function clearHistory() {
+  // A confirm is enough here: the action is device-local and reversible only
+  // by watching again.
+  if (!window.confirm('清空本机观看记录？作品和服务器记录不会被删除。')) return
+  clearWatchHistory()
+  history.value = recentSeries()
 }
 
 function loadMore() {
@@ -137,9 +166,12 @@ onMounted(() => {
       <section v-if="history.length" class="section" aria-labelledby="continue-heading">
         <div class="section-head">
           <h2 id="continue-heading">继续观看</h2>
-          <span class="count">仅本设备</span>
+          <div class="history-tools">
+            <span class="count">仅本设备</span>
+            <button class="clear" type="button" @click="clearHistory">清空</button>
+          </div>
         </div>
-        <ContinueRow :items="history" />
+        <ContinueRow :items="history" @remove="removeHistorySeries" />
       </section>
 
       <section class="section" aria-labelledby="list-heading">

@@ -13,6 +13,26 @@ test('redirects an anonymous visitor to the login page', async ({ page }) => {
   await expect(page.getByRole('heading', { name: '登录运营后台' })).toBeVisible()
 })
 
+test('login submits once for one Enter press', async ({ page }) => {
+  let loginRequests = 0
+  await page.route('**/api/admin/v1/auth/me', (route) =>
+    route.fulfill({
+      status: 401,
+      json: { code: 401, reason: 'AUTH_REQUIRED', message: '需要登录' },
+    }),
+  )
+  await page.route('**/api/admin/v1/auth/login', (route) => {
+    loginRequests += 1
+    return route.fulfill({ status: 200, json: sessionBody('admin') })
+  })
+  await page.goto('/login')
+  await page.getByPlaceholder('请输入用户名').fill('admin')
+  await page.getByPlaceholder('请输入密码').fill('local-e2e-password-2026')
+  await page.getByPlaceholder('请输入密码').press('Enter')
+  await expect(page.getByRole('heading', { name: '运营工作台' })).toBeVisible()
+  expect(loginRequests).toBe(1)
+})
+
 test('shows the reason of a rejected login', async ({ page }) => {
   await page.route('**/api/admin/v1/auth/me', (route) =>
     route.fulfill({

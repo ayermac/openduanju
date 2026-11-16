@@ -27,6 +27,68 @@ test('lists the published series on the home page', async ({ page }) => {
   expect(errors).toEqual([])
 })
 
+test('search submits once and the latest query wins', async ({ page }) => {
+  const errors: string[] = []
+  page.on('pageerror', (error) => errors.push(error.message))
+
+  let releaseOld: (() => void) | undefined
+  const oldResponse = new Promise<void>((resolve) => {
+    releaseOld = resolve
+  })
+  let oldRequests = 0
+  let newRequests = 0
+
+  await page.route('**/api/web/v1/categories', (route) =>
+    route.fulfill({ json: { categories: [] } }),
+  )
+  await page.route('**/api/web/v1/series?*', async (route) => {
+    const q = new URL(route.request().url()).searchParams.get('q') ?? ''
+    if (q === '旧剧名') {
+      oldRequests += 1
+      await oldResponse
+      await route.fulfill({
+        json: {
+          total: 1,
+          page: 1,
+          page_size: 24,
+          items: [{ ...series, series_id: 1, title: '旧剧名命中' }],
+        },
+      })
+      return
+    }
+    if (q === '新剧名') {
+      newRequests += 1
+      await route.fulfill({
+        json: {
+          total: 1,
+          page: 1,
+          page_size: 24,
+          items: [{ ...series, series_id: 2, title: '新剧名命中' }],
+        },
+      })
+      return
+    }
+    await route.fulfill({ json: { total: 0, page: 1, page_size: 24, items: [] } })
+  })
+
+  await page.goto('/')
+  await expect(page.getByRole('heading', { name: '还没有已发布的作品' })).toBeVisible()
+  await page.getByPlaceholder('搜索片名或简介').fill('旧剧名')
+  await page.keyboard.press('Enter')
+  await page.waitForFunction(() => document.body.textContent?.includes('旧剧名命中') === false)
+  await page.getByPlaceholder('搜索片名或简介').fill('新剧名')
+  await page.keyboard.press('Enter')
+  await page.getByRole('link', { name: '新剧名命中' }).waitFor()
+  // The first query was slower on purpose: it must not overwrite the newer one.
+  releaseOld?.()
+  await page.waitForTimeout(100)
+  await expect(page.getByRole('link', { name: '新剧名命中' })).toBeVisible()
+  await expect(page.getByRole('link', { name: '旧剧名命中' })).toHaveCount(0)
+  expect(oldRequests).toBe(1)
+  expect(newRequests).toBe(1)
+  expect(errors).toEqual([])
+})
+
 test('opens a detail page with the episode list and the player', async ({ page }) => {
   const errors: string[] = []
   page.on('pageerror', (error) => errors.push(error.message))

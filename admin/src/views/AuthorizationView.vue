@@ -1,20 +1,23 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { onMounted, ref } from 'vue'
 import {
   ElAlert,
   ElButton,
   ElCard,
   ElCheckbox,
   ElDatePicker,
+  ElDialog,
   ElInput,
   ElInputNumber,
   ElMessage,
+  ElPagination,
   ElSelect,
   ElOption,
   ElTable,
   ElTableColumn,
   ElTag,
 } from 'element-plus'
+import { can } from '@/api/session'
 import {
   ApiError,
   createGrant,
@@ -23,6 +26,7 @@ import {
   type AuthorizationGrant,
 } from '@/api/authorization'
 
+const canMaintainAuthorization = can('authorization_write')
 const seriesId = ref<number | null>(null)
 const reference = ref('')
 const allowProcess = ref(false)
@@ -35,10 +39,17 @@ const formError = ref('')
 
 const grants = ref<AuthorizationGrant[]>([])
 const total = ref(0)
+const page = ref(1)
+const pageSize = ref(20)
 const listSeries = ref<number | null>(null)
 const statusFilter = ref('')
 const listError = ref('')
 const loading = ref(false)
+
+// Revocation is explicit: the dialog names the grant and requires a reason.
+const revokeAction = ref<AuthorizationGrant | null>(null)
+const revokeReason = ref('')
+const revokeBusy = ref(false)
 
 function describeError(error: unknown): string {
   if (error instanceof ApiError) return `${error.reason}：${error.message}`
@@ -49,11 +60,21 @@ function formatTime(value?: string): string {
   if (!value) return '—'
   const date = new Date(value)
   if (Number.isNaN(date.getTime())) return value
-  return date.toLocaleString('zh-CN', { hour12: false })
+  const pad = (part: number) => String(part).padStart(2, '0')
+  return (
+    `${date.getUTCFullYear()}-${pad(date.getUTCMonth() + 1)}-${pad(date.getUTCDate())} ` +
+    `${pad(date.getUTCHours())}:${pad(date.getUTCMinutes())}:${pad(date.getUTCSeconds())} UTC`
+  )
 }
 
 function permissionLabel(value: boolean): string {
   return value ? '允许' : '不允许'
+}
+
+function lifecycleLabel(status: string): string {
+  // The stored state only says whether the grant has been revoked; whether it
+  // is currently inside the validity window is checked by the server.
+  return status === 'revoked' ? '已撤销' : '未撤销'
 }
 
 async function submit() {
@@ -93,11 +114,17 @@ async function submit() {
   }
 }
 
-async function load() {
+async function load(resetPage = false) {
+  if (resetPage) page.value = 1
   loading.value = true
   listError.value = ''
   try {
-    const set = await listGrants(listSeries.value ?? undefined, statusFilter.value || undefined)
+    const set = await listGrants(
+      listSeries.value ?? undefined,
+      statusFilter.value || undefined,
+      page.value,
+      pageSize.value,
+    )
     grants.value = set.items ?? []
     total.value = set.total
   } catch (error) {
@@ -107,18 +134,39 @@ async function load() {
   }
 }
 
-async function revoke(row: unknown) {
-  const grant = row as AuthorizationGrant
-  const reason = window.prompt(`撤销依据 #${grant.id} 的原因（必填，将写入审计）`)?.trim()
-  if (!reason) return
+function changePage(next: number) {
+  page.value = next
+  void load()
+}
+
+function changePageSize(next: number) {
+  pageSize.value = next
+  void load(true)
+}
+
+async function confirmRevoke() {
+  if (!revokeAction.value) return
+  const reason = revokeReason.value.trim()
+  if (!reason) {
+    listError.value = '撤销原因是必填项'
+    return
+  }
+  revokeBusy.value = true
   try {
-    await revokeGrant(grant.id, grant.version, reason)
+    await revokeGrant(revokeAction.value.id, revokeAction.value.version, reason)
     ElMessage.success('授权依据已撤销')
+    revokeAction.value = null
+    revokeReason.value = ''
     await load()
   } catch (error) {
+    revokeAction.value = null
     listError.value = describeError(error)
+  } finally {
+    revokeBusy.value = false
   }
 }
+
+onMounted(load)
 </script>
 
 <template>
@@ -130,7 +178,6 @@ async function revoke(row: unknown) {
           作品级授权，用途位默认关闭。依据创建后不可原地修改：修正用途或期限请新增一条；旧依据只能撤销。提交批次必须显式选择依据与版本。
         </p>
       </div>
-      <SessionBar />
     </section>
 
     <ElCard shadow="never" class="panel">
@@ -141,17 +188,23 @@ async function revoke(row: unknown) {
         </div>
       </template>
       <ElAlert v-if="formError" type="error" :closable="false" :title="formError" show-icon />
-      <div class="submit-row">
+      <div v-if="!canMaintainAuthorization" class="hint readonly-note">
+        授权维护需要管理员权限，当前为只读视图
+      </div>
+      <div v-if="canMaintainAuthorization" class="submit-row">
         <label>作品 ID<ElInputNumber v-model="seriesId" :min="1" :controls="false" /></label>
         <label>材料编号<ElInput v-model="reference" placeholder="AUTH-2026-001" /></label>
         <label
-          >生效时间<ElDatePicker v-model="validFrom" type="datetime" placeholder="UTC 生效"
+          >生效时间<ElDatePicker
+            v-model="validFrom"
+            type="datetime"
+            placeholder="按本机时间选择，提交转 UTC"
         /></label>
         <label
           >结束时间<ElDatePicker v-model="validUntil" type="datetime" placeholder="可留空"
         /></label>
       </div>
-      <div class="submit-row">
+      <div v-if="canMaintainAuthorization" class="submit-row">
         <ElCheckbox v-model="allowProcess">允许处理（获取/下载/处理/存储）</ElCheckbox>
         <ElCheckbox v-model="allowDisplay">允许展示（元数据/封面）</ElCheckbox>
         <ElCheckbox v-model="allowPlayback">允许播放（签发播放凭证）</ElCheckbox>
@@ -163,7 +216,7 @@ async function revoke(row: unknown) {
       <template #header>
         <div class="panel-title">
           <strong>02 依据列表</strong>
-          <span>撤销使用版本 CAS；重复撤销同一版本幂等</span>
+          <span>撤销按当前版本提交；同一版本的重复撤销不会重复记录</span>
         </div>
       </template>
       <ElAlert v-if="listError" type="error" :closable="false" :title="listError" show-icon />
@@ -175,11 +228,17 @@ async function revoke(row: unknown) {
           placeholder="作品 ID"
           size="small"
         />
-        <ElSelect v-model="statusFilter" placeholder="全部状态" size="small" clearable>
-          <ElOption label="生效中" value="active" />
+        <ElSelect
+          v-model="statusFilter"
+          placeholder="全部状态"
+          size="small"
+          clearable
+          @change="load(true)"
+        >
+          <ElOption label="未撤销" value="active" />
           <ElOption label="已撤销" value="revoked" />
         </ElSelect>
-        <ElButton size="small" :loading="loading" @click="load">查询</ElButton>
+        <ElButton size="small" :loading="loading" @click="load(true)">查询</ElButton>
         <span class="hint">共 {{ total }} 条</span>
       </div>
       <ElTable :data="grants" empty-text="暂无授权依据">
@@ -208,7 +267,7 @@ async function revoke(row: unknown) {
         <ElTableColumn label="状态" width="100">
           <template #default="{ row }">
             <ElTag size="small" :type="row.status === 'active' ? 'success' : 'danger'">
-              {{ row.status === 'active' ? '生效中' : '已撤销' }}
+              {{ lifecycleLabel(row.status) }}
             </ElTag>
           </template>
         </ElTableColumn>
@@ -221,15 +280,61 @@ async function revoke(row: unknown) {
             </div>
           </template>
         </ElTableColumn>
-        <ElTableColumn label="操作" width="100">
+        <ElTableColumn v-if="canMaintainAuthorization" label="操作" width="100">
           <template #default="{ row }">
-            <ElButton size="small" :disabled="row.status === 'revoked'" @click="revoke(row)"
+            <ElButton
+              size="small"
+              :disabled="row.status === 'revoked'"
+              @click="revokeAction = row as AuthorizationGrant"
               >撤销</ElButton
             >
           </template>
         </ElTableColumn>
       </ElTable>
+      <div class="pager">
+        <ElPagination
+          layout="prev, pager, next, sizes"
+          :current-page="page"
+          :page-size="pageSize"
+          :page-sizes="[10, 20, 50]"
+          :total="total"
+          :disabled="loading"
+          @current-change="changePage"
+          @size-change="changePageSize"
+        />
+      </div>
     </ElCard>
+
+    <ElDialog
+      :model-value="Boolean(revokeAction)"
+      :title="revokeAction ? `撤销授权依据 ${revokeAction.reference}` : ''"
+      width="520px"
+      @update:model-value="revokeAction = null"
+    >
+      <template v-if="revokeAction">
+        <p>
+          对象：<strong>#{{ revokeAction.id }} · {{ revokeAction.reference }}</strong
+          >（作品 #{{ revokeAction.series_id }}，版本 v{{ revokeAction.version }}）。
+        </p>
+        <label class="field">
+          撤销原因
+          <ElInput
+            v-model="revokeReason"
+            type="textarea"
+            :rows="3"
+            maxlength="200"
+            show-word-limit
+            aria-label="撤销原因"
+            placeholder="例如：授权材料到期、用途需要重新约定"
+          />
+        </label>
+        <p class="hint">撤销原因是必填项，将写入审计。</p>
+      </template>
+      <template #footer>
+        <ElButton @click="revokeAction = null">取消</ElButton>
+        <ElButton type="danger" :loading="revokeBusy" @click="confirmRevoke">确认撤销</ElButton>
+      </template>
+    </ElDialog>
   </main>
 </template>
 
@@ -237,5 +342,19 @@ async function revoke(row: unknown) {
 .hint {
   color: var(--el-text-color-secondary);
   font-size: 12px;
+}
+.readonly-note {
+  margin-bottom: 10px;
+}
+.pager {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 12px;
+}
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 10px;
 }
 </style>

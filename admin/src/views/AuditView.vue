@@ -101,7 +101,6 @@ onMounted(() => {
           每次关键写入都留下一条记录：操作人、动作、对象与版本、结果与失败码、时间，以及该请求的报障编号。成功记录与业务变更在同一事务提交，业务失败不产生成功记录。
         </p>
       </div>
-      <SessionBar />
     </section>
 
     <ElCard shadow="never" class="panel">

@@ -5,34 +5,46 @@ import type { WatchProgress } from '@/stores/history'
 // The device history has no total duration, so the row states the episode and
 // the position reached, not a percentage of an unknown whole.
 defineProps<{ items: WatchProgress[] }>()
+defineEmits<{ (event: 'remove', seriesId: string): void }>()
 
-function clock(ms: number): string {
-  const total = Math.max(0, Math.floor(ms / 1000))
-  const minutes = Math.floor(total / 60)
-  const seconds = total % 60
-  return `${minutes}:${String(seconds).padStart(2, '0')}`
+function clock(positionSeconds: number): string {
+  const totalSeconds = Math.max(0, Math.floor(positionSeconds))
+  const hours = Math.floor(totalSeconds / 3600)
+  const minutes = Math.floor((totalSeconds % 3600) / 60)
+  const seconds = totalSeconds % 60
+  const minuteText = String(minutes).padStart(hours ? 2 : 1, '0')
+  const secondText = String(seconds).padStart(2, '0')
+  return hours ? `${hours}:${minuteText}:${secondText}` : `${minuteText}:${secondText}`
 }
 </script>
 
 <template>
   <div class="row">
-    <RouterLink
-      v-for="item in items"
-      :key="`${item.seriesId}:${item.episodeId}`"
-      class="card"
-      :to="{ path: `/series/${item.seriesId}`, query: { episode: item.episodeId } }"
-    >
-      <span class="index" aria-hidden="true">{{
-        String(item.episodeNumber).padStart(2, '0')
-      }}</span>
-      <span class="meta">
-        <span class="name">{{ item.seriesTitle || '未命名作品' }}</span>
-        <span class="sub"
-          >看到第 {{ item.episodeNumber }} 集 · 已看 {{ clock(item.position) }}</span
-        >
-      </span>
-      <span class="go" aria-hidden="true">继续</span>
-    </RouterLink>
+    <div v-for="item in items" :key="`${item.seriesId}:${item.episodeId}`" class="card">
+      <RouterLink
+        class="card-link"
+        :to="{ path: `/series/${item.seriesId}`, query: { episode: item.episodeId } }"
+      >
+        <span class="index" aria-hidden="true">{{
+          String(item.episodeNumber).padStart(2, '0')
+        }}</span>
+        <span class="meta">
+          <span class="name">{{ item.seriesTitle || '未命名作品' }}</span>
+          <span class="sub"
+            >看到第 {{ item.episodeNumber }} 集 · 已看 {{ clock(item.position) }}</span
+          >
+        </span>
+        <span class="go" aria-hidden="true">继续</span>
+      </RouterLink>
+      <button
+        class="remove"
+        type="button"
+        :aria-label="`删除 ${item.seriesTitle || '未命名作品'} 的观看记录`"
+        @click="$emit('remove', item.seriesId)"
+      >
+        删除
+      </button>
+    </div>
   </div>
 </template>
 
@@ -48,17 +60,34 @@ function clock(ms: number): string {
 .card {
   flex: 0 0 300px;
   scroll-snap-align: start;
-  display: flex;
-  align-items: center;
-  gap: var(--sp-3);
-  padding: var(--sp-2) var(--sp-3) var(--sp-2) var(--sp-2);
+  position: relative;
   background: var(--surface);
   border-radius: var(--r-lg);
   box-shadow: var(--shadow-1);
   min-height: 76px;
 }
-.card:hover {
+.card-link {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  padding: var(--sp-2) var(--sp-3) var(--sp-2) var(--sp-2);
+  min-height: 76px;
+}
+.card-link:hover {
   box-shadow: var(--shadow-2);
+}
+.remove {
+  position: absolute;
+  top: 6px;
+  right: 8px;
+  width: 24px;
+  height: 24px;
+  border-radius: var(--r-sm);
+  border: 1px solid var(--line-300);
+  background: var(--surface);
+  color: var(--ink-600);
+  font-size: var(--fs-12);
+  line-height: 1;
 }
 .index {
   flex: none;

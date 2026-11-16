@@ -1,7 +1,7 @@
 // Session, account and role helpers. The server is the authority on roles;
 // the UI only uses these values to route and to explain a 403.
 
-import { request, setCSRFToken } from './client'
+import { request, setCSRFToken, UNAUTHORIZED_EVENT } from './client'
 
 export { ApiError, getCSRFToken, setCSRFToken } from './client'
 
@@ -34,6 +34,13 @@ export interface StaffSet {
 }
 
 let current: AdminSession | null = null
+
+// Any 401 invalidates the cached identity and CSRF token immediately; the
+// router listens for the same event to send the user back to login.
+window.addEventListener(UNAUTHORIZED_EVENT, () => {
+  current = null
+  setCSRFToken('')
+})
 
 // currentSession returns the cached session of this page load.
 export function currentSession(): AdminSession | null {

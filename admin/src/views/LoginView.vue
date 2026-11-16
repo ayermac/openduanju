@@ -12,6 +12,7 @@ const route = useRoute()
 const router = useRouter()
 
 async function submit() {
+  if (busy.value) return
   error.value = ''
   if (!username.value.trim() || !password.value) {
     error.value = '请输入用户名与密码'
@@ -79,7 +80,6 @@ onMounted(() => {
             autocomplete="current-password"
             placeholder="请输入密码"
             aria-required="true"
-            @keyup.enter="submit"
           />
           <span class="help">8～128 位；连续失败会按频率限制</span>
         </label>

@@ -29,7 +29,10 @@ function stubPublicApi(series: unknown[], categories: string[] = []) {
 async function mountHome() {
   const router = createRouter({
     history: createMemoryHistory(),
-    routes: [{ path: '/', component: HomeView }],
+    routes: [
+      { path: '/', component: HomeView },
+      { path: '/series/:id', component: { template: '<div />' } },
+    ],
   })
   await router.push('/')
   await router.isReady()
@@ -87,5 +90,34 @@ describe('public home', () => {
     const wrapper = await mountHome()
     expect(wrapper.text()).toContain('内容暂时取不到')
     expect(wrapper.get('button.btn.primary').text()).toBe('重新加载')
+  })
+
+  it('formats stored playback positions as seconds', async () => {
+    const positions = [0, 13, 60, 65, 3600]
+    const records = Object.fromEntries(
+      positions.map((position, index) => [
+        `${index + 1}:10`,
+        {
+          seriesId: String(index + 1),
+          seriesTitle: `作品 ${index + 1}`,
+          episodeId: '10',
+          episodeNumber: 1,
+          position,
+          paused: true,
+          rate: 1,
+          updatedAt: index + 1,
+        },
+      ]),
+    )
+    window.localStorage.setItem('openduanju.watch-progress', JSON.stringify(records))
+    stubPublicApi([])
+    const wrapper = await mountHome()
+    expect(wrapper.findAll('.row .sub').map((item) => item.text())).toEqual([
+      '看到第 1 集 · 已看 1:00:00',
+      '看到第 1 集 · 已看 1:05',
+      '看到第 1 集 · 已看 1:00',
+      '看到第 1 集 · 已看 0:13',
+      '看到第 1 集 · 已看 0:00',
+    ])
   })
 })

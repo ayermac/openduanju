@@ -42,6 +42,16 @@ export function getCSRFToken(): string {
 
 // request sends one admin call. Cookies travel with the request, and a
 // mutating call carries the CSRF token of the current session.
+// Unauthorized events are handled once by the session/router layer: the page
+// returns to login with the current internal path. A 403 is a permission
+// answer and must stay a normal error for the page to explain.
+export const UNAUTHORIZED_EVENT = 'openduanju:unauthorized'
+
+function safeInternalPath(): string {
+  const path = `${window.location.pathname}${window.location.search}`
+  return path.startsWith('/') && !path.startsWith('//') ? path : '/'
+}
+
 export async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const headers = new Headers(init?.headers)
   if (init?.body) headers.set('Content-Type', 'application/json')
@@ -55,6 +65,14 @@ export async function request<T>(path: string, init?: RequestInit): Promise<T> {
   })
   if (!response.ok) {
     const problem = (await response.json().catch(() => ({}))) as Partial<Problem>
+    if (response.status === 401) {
+      csrfToken = ''
+      window.dispatchEvent(
+        new CustomEvent(UNAUTHORIZED_EVENT, {
+          detail: { next: safeInternalPath(), path, reason: problem.reason ?? '' },
+        }),
+      )
+    }
     throw new ApiError(problem, `请求失败（HTTP ${response.status}）`)
   }
   if (response.status === 204) return undefined as T

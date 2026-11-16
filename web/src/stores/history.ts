@@ -6,6 +6,7 @@ export interface WatchProgress {
   seriesTitle: string
   episodeId: string
   episodeNumber: number
+  // HTMLMediaElement.currentTime uses seconds; keep that unit at every boundary.
   position: number
   paused: boolean
   rate: number
@@ -70,6 +71,22 @@ export function seriesProgress(seriesId: string): WatchProgress | null {
     if (!newest || newest.updatedAt < progress.updatedAt) newest = progress
   }
   return newest
+}
+
+// Deleting a series card removes all episode records of that series, not just
+// the newest one. Otherwise an old episode record would put the card back.
+export function removeSeriesProgress(seriesId: string): void {
+  const all = readAll()
+  for (const key of Object.keys(all)) {
+    if (all[key]?.seriesId === seriesId) delete all[key]
+  }
+  writeAll(all)
+}
+
+// Clearing history removes only this project's watch-progress storage. It never
+// calls localStorage.clear, because other sites may share the same browser.
+export function clearWatchHistory(): void {
+  writeAll({})
 }
 
 // EpisodeChoice is the episode a series page opens and whether that episode

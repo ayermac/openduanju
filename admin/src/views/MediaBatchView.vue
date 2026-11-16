@@ -277,11 +277,8 @@ onBeforeUnmount(() => {
     <section class="heading">
       <div>
         <h1>素材批次</h1>
-        <p>
-          批次固定修订与选集，每个分集一个任务；全部就绪后才会创建唯一审核任务，当前切片尚未开放审核入口。
-        </p>
+        <p>批次固定修订与选集，每个分集一个任务；全部就绪后才会创建唯一审核任务。</p>
       </div>
-      <SessionBar />
     </section>
 
     <ElCard shadow="never" class="panel">
@@ -318,12 +315,7 @@ onBeforeUnmount(() => {
         </label>
         <label>
           授权版本
-          <ElInputNumber
-            v-model="authorizationVersion"
-            :min="1"
-            size="small"
-            placeholder="expected"
-          />
+          <ElInputNumber v-model="authorizationVersion" :min="1" size="small" placeholder="数量" />
         </label>
         <ElButton type="primary" :loading="submitting" @click="submit">提交批次</ElButton>
       </div>
