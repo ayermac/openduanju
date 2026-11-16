@@ -75,6 +75,46 @@ test('logs in and lands on the workbench', async ({ page }) => {
   await expect(page.locator('.top .role')).toHaveText('管理员')
 })
 
+test('ignores a protocol-relative next after login and falls back to the workbench', async ({
+  page,
+}) => {
+  await page.route('**/api/admin/v1/auth/me', (route) =>
+    route.fulfill({
+      status: 401,
+      json: { code: 401, reason: 'AUTH_REQUIRED', message: '需要登录' },
+    }),
+  )
+  await page.route('**/api/admin/v1/auth/login', (route) =>
+    route.fulfill({ status: 200, json: sessionBody('admin') }),
+  )
+  await page.goto('/login?next=//evil.example/path')
+  await page.getByPlaceholder('请输入用户名').fill('admin')
+  await page.getByPlaceholder('请输入密码').fill('local-e2e-password-2026')
+  await page.getByRole('button', { name: '登录' }).click()
+  await expect(page).toHaveURL(/\/$/)
+  await expect(page.getByRole('heading', { name: '运营工作台' })).toBeVisible()
+})
+
+test('honours an internal next after login', async ({ page }) => {
+  await page.route('**/api/admin/v1/auth/me', (route) =>
+    route.fulfill({
+      status: 401,
+      json: { code: 401, reason: 'AUTH_REQUIRED', message: '需要登录' },
+    }),
+  )
+  await page.route('**/api/admin/v1/auth/login', (route) =>
+    route.fulfill({ status: 200, json: sessionBody('admin') }),
+  )
+  await page.route('**/api/admin/v1/staff?**', (route) =>
+    route.fulfill({ status: 200, json: { total: 0, page: 1, page_size: 20, items: [] } }),
+  )
+  await page.goto('/login?next=/staff')
+  await page.getByPlaceholder('请输入用户名').fill('admin')
+  await page.getByPlaceholder('请输入密码').fill('local-e2e-password-2026')
+  await page.getByRole('button', { name: '登录' }).click()
+  await expect(page).toHaveURL(/\/staff$/)
+})
+
 test('an operator sees an explicit forbidden page for staff management', async ({ page }) => {
   await mockSession(page, 'operator')
   await page.goto('/staff')

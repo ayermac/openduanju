@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
+import { onBeforeRouteLeave, useRouter } from 'vue-router'
 import {
   ElAlert,
   ElButton,
@@ -76,6 +77,8 @@ const newWorkEpisodes = ref<number[]>([1])
 const newWorkError = ref('')
 const creatingWork = ref(false)
 let newWorkRequestID = ''
+const router = useRouter()
+let pendingNewWorkExit: (() => void) | null = null
 
 // The contract names the working draft "draft" and the revision on the
 // shelf "published_revision".
@@ -205,6 +208,8 @@ async function save() {
 
 // openNewWork opens the manual creation form with a fresh idempotency key.
 function openNewWork() {
+  pendingNewWorkExit = null
+  showCloseConfirm.value = false
   newWork.value = { title: '', description: '' }
   newWorkEpisodes.value = [1]
   newWorkError.value = ''
@@ -228,23 +233,59 @@ const newWorkDirty = computed(
     newWorkEpisodes.value[0] !== 1,
 )
 
-// Element Plus asks before closing on Esc, mask and the close button. We keep
-// the form open until the operator explicitly chooses to continue or discard.
-function guardNewWorkClose(done: () => void) {
-  if (!newWorkDirty.value && !creatingWork.value) {
-    done()
-    return
-  }
-  showCloseConfirm.value = true
-}
-
-function discardNewWork() {
-  showCloseConfirm.value = false
-  showNewWork.value = false
+function resetNewWorkForm() {
   newWork.value = { title: '', description: '' }
   newWorkEpisodes.value = [1]
   newWorkError.value = ''
 }
+
+function closeNewWork() {
+  showNewWork.value = false
+  resetNewWorkForm()
+}
+
+// Element Plus asks before closing on Esc, mask and the close button. An empty
+// form closes immediately; a dirty form keeps the dialog open until the
+// operator explicitly chooses to continue or discard.
+function guardNewWorkClose(done: () => void) {
+  if (!newWorkDirty.value && !creatingWork.value) {
+    done()
+    closeNewWork()
+    return
+  }
+  pendingNewWorkExit = () => {
+    done()
+    closeNewWork()
+  }
+  showCloseConfirm.value = true
+}
+
+function keepEditingNewWork() {
+  pendingNewWorkExit = null
+  showCloseConfirm.value = false
+}
+
+function discardNewWork() {
+  const exit = pendingNewWorkExit
+  pendingNewWorkExit = null
+  showCloseConfirm.value = false
+  resetNewWorkForm()
+  showNewWork.value = false
+  exit?.()
+}
+
+function onNewWorkClosed() {
+  showNewWork.value = false
+}
+
+onBeforeRouteLeave((to) => {
+  if (!showNewWork.value || !newWorkDirty.value || creatingWork.value) return true
+  pendingNewWorkExit = () => {
+    void router.push(to.fullPath)
+  }
+  showCloseConfirm.value = true
+  return false
+})
 
 function addEpisode() {
   const last = newWorkEpisodes.value[newWorkEpisodes.value.length - 1] ?? 0
@@ -605,6 +646,7 @@ onMounted(() => {
       width="600px"
       :close-on-click-modal="false"
       :before-close="guardNewWorkClose"
+      @closed="onNewWorkClosed"
       @update:model-value="guardNewWorkClose(() => {})"
     >
       <p class="muted">
@@ -650,11 +692,11 @@ onMounted(() => {
       :model-value="showCloseConfirm"
       title="关闭会丢失未保存内容"
       width="420px"
-      @update:model-value="showCloseConfirm = false"
+      @update:model-value="keepEditingNewWork"
     >
       <p>关闭会丢失未保存内容。继续编辑保留；放弃修改会清空并关闭。</p>
       <template #footer>
-        <ElButton @click="showCloseConfirm = false">继续编辑</ElButton>
+        <ElButton @click="keepEditingNewWork">继续编辑</ElButton>
         <ElButton type="danger" :disabled="creatingWork" @click="discardNewWork">放弃修改</ElButton>
       </template>
     </ElDialog>

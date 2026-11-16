@@ -11,6 +11,12 @@ const error = ref('')
 const route = useRoute()
 const router = useRouter()
 
+// The same rule as the 401 return path: only an absolute in-app path is a
+// destination; anything else goes back to the workbench.
+function safeNext(value: unknown): string {
+  return typeof value === 'string' && value.startsWith('/') && !value.startsWith('//') ? value : '/'
+}
+
 async function submit() {
   if (busy.value) return
   error.value = ''
@@ -21,8 +27,7 @@ async function submit() {
   busy.value = true
   try {
     await login(username.value.trim(), password.value)
-    const next = typeof route.query.next === 'string' ? route.query.next : '/'
-    await router.replace(next)
+    await router.replace(safeNext(route.query.next))
   } catch (err) {
     // A wrong password, a disabled account and a rate-limited call all land
     // here with the reason the server gave; the message carries the report id.

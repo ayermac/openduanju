@@ -157,6 +157,64 @@ test('revokes a grant through a required-reason dialog and carries the version',
   expect(revocations).toBe(1)
 })
 
+test('closes an empty manual work dialog with cancel or Escape and can reopen', async ({
+  page,
+}) => {
+  await page.route('**/api/admin/v1/series?**', (route) =>
+    route.fulfill({ status: 200, json: { total: 0, page: 1, page_size: 20, items: [] } }),
+  )
+
+  await page.goto('/content')
+  const open = page.getByRole('button', { name: '新建作品' })
+  const dialog = page.getByRole('dialog', { name: '新建作品（人工创建）' })
+  await open.click()
+  await dialog.getByRole('button', { name: '取消' }).click()
+  await expect(dialog).toBeHidden()
+
+  await open.click()
+  await expect(dialog).toBeVisible()
+  await page.keyboard.press('Escape')
+  await expect(dialog).toBeHidden()
+
+  await open.click()
+  await expect(dialog).toBeVisible()
+})
+
+test('guards unsaved manual work on browser back and in-app leave', async ({ page }) => {
+  await page.route('**/api/admin/v1/series?**', (route) =>
+    route.fulfill({ status: 200, json: { total: 0, page: 1, page_size: 20, items: [] } }),
+  )
+  await page.route('**/api/admin/v1/reviews?**', (route) =>
+    route.fulfill({ status: 200, json: { total: 0, page: 1, page_size: 20, items: [] } }),
+  )
+  await page.goto('/content')
+  // Make the return action a same-document router popstate, not a full reload.
+  await page.getByRole('link', { name: '审核' }).click()
+  await page.getByRole('link', { name: '内容管理' }).click()
+  const dialog = page.getByRole('dialog', { name: '新建作品（人工创建）' })
+  const title = page.getByLabel('标题（必填，最多120字）')
+  const confirmation = page.getByText('关闭会丢失未保存内容。继续编辑保留；放弃修改会清空并关闭。')
+
+  await page.getByRole('button', { name: '新建作品' }).click()
+  await title.fill('未保存的作品')
+  await page.evaluate(() => window.history.back())
+  await expect(page).toHaveURL(/\/content/)
+  await expect(confirmation).toBeVisible()
+  await page.getByRole('button', { name: '继续编辑' }).click()
+  await expect(confirmation).toBeHidden()
+  await expect(title).toHaveValue('未保存的作品')
+  await expect(dialog).toBeVisible()
+
+  // The modal covers the sidebar, so a real pointer cannot reach it. Dispatch
+  // the RouterLink click to exercise the same in-app navigation guard.
+  await page.getByRole('link', { name: '审核' }).dispatchEvent('click')
+  await expect(confirmation).toBeVisible()
+  await expect(page).toHaveURL(/\/content/)
+  await page.getByRole('button', { name: '放弃修改' }).click()
+  await expect(page).toHaveURL(/\/reviews/)
+  await expect(dialog).toBeHidden()
+})
+
 test('guards unsaved manual work against accidental close', async ({ page }) => {
   await page.route('**/api/admin/v1/series?**', (route) =>
     route.fulfill({ status: 200, json: { total: 0, page: 1, page_size: 20, items: [] } }),
