@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { onBeforeRouteLeave, useRouter } from 'vue-router'
 import {
   ElAlert,
@@ -13,6 +13,7 @@ import {
   ElRadioGroup,
   ElTable,
   ElTableColumn,
+  type TableInstance,
 } from 'element-plus'
 import { ApiError } from '@/api/client'
 import { can } from '@/api/session'
@@ -78,6 +79,8 @@ const newWorkError = ref('')
 const creatingWork = ref(false)
 let newWorkRequestID = ''
 const router = useRouter()
+const tableRef = ref<TableInstance>()
+let layoutFrame = 0
 let pendingNewWorkExit: (() => void) | null = null
 
 // The contract names the working draft "draft" and the revision on the
@@ -504,10 +507,23 @@ async function confirmUnpublish() {
   }
 }
 
+function layoutTable() {
+  cancelAnimationFrame(layoutFrame)
+  layoutFrame = requestAnimationFrame(() => {
+    tableRef.value?.doLayout()
+  })
+}
+
 onMounted(() => {
   canWrite.value = can('content_write')
   canPublish.value = can('publish')
+  window.addEventListener('resize', layoutTable)
   void load()
+})
+
+onBeforeUnmount(() => {
+  window.removeEventListener('resize', layoutTable)
+  cancelAnimationFrame(layoutFrame)
 })
 </script>
 
@@ -530,7 +546,13 @@ onMounted(() => {
         <ElButton :loading="loading" @click="load(true)">搜索</ElButton>
       </div>
       <ElAlert v-if="listError" type="error" :closable="false" :title="listError" show-icon />
-      <ElTable v-loading="loading" :data="items" empty-text="还没有内容" @row-click="open">
+      <ElTable
+        ref="tableRef"
+        v-loading="loading"
+        :data="items"
+        empty-text="还没有内容"
+        @row-click="open"
+      >
         <ElTableColumn prop="title" label="标题" min-width="180" show-overflow-tooltip />
         <ElTableColumn prop="revision_no" label="草稿" width="80" />
         <ElTableColumn prop="revision_state" label="草稿状态" width="120" />
@@ -739,6 +761,9 @@ onMounted(() => {
   padding: var(--sp-5);
   display: grid;
   gap: var(--sp-4);
+}
+.list {
+  min-width: 0;
 }
 .topbar {
   display: flex;

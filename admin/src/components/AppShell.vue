@@ -103,6 +103,9 @@ async function signOut() {
 .shell {
   display: grid;
   grid-template-columns: 232px minmax(0, 1fr);
+  width: 100%;
+  min-width: 0;
+  max-width: 100vw;
   min-height: 100vh;
 }
 .side {
