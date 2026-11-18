@@ -371,7 +371,7 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div class="series">
+  <div class="series with-rail">
     <SiteHeader back />
 
     <main class="wrap">
@@ -522,11 +522,11 @@ onBeforeUnmount(() => {
   flex-wrap: wrap;
 }
 .nav-btn {
-  min-height: 38px;
+  min-height: var(--touch);
   padding: 0 var(--sp-4);
-  border-radius: var(--r-md);
+  border-radius: var(--r-pill);
   border: 1px solid var(--border-strong);
-  background: var(--surface);
+  background: #ffffff12;
   color: var(--ink-900);
   font-size: var(--fs-14);
 }
@@ -564,14 +564,14 @@ onBeforeUnmount(() => {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  height: 38px;
+  min-height: var(--touch);
   padding: 0 var(--sp-4);
-  border-radius: var(--r-md);
+  border-radius: var(--r-pill);
   border: 1px solid var(--brand);
   background: var(--brand);
-  color: #fff;
+  color: var(--brand-ink);
   font-size: var(--fs-14);
-  font-weight: 600;
+  font-weight: 700;
 }
 .error-note {
   background: var(--danger-weak);

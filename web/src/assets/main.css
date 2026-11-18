@@ -17,7 +17,8 @@ body {
   font-size: var(--fs-14);
   line-height: var(--lh-body);
   color: var(--ink-900);
-  background: var(--surface-2);
+  background:
+    radial-gradient(900px 420px at 72% -8%, #14343a 0%, transparent 58%), var(--surface-2);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
 }
@@ -78,7 +79,17 @@ button {
   border: 0;
 }
 
-@media (max-width: 720px) {
+/* 桌面左侧栏占位。窄屏改成顶栏加底栏，由 SiteHeader 自己切换。 */
+@media (min-width: 901px) {
+  .with-rail {
+    margin-left: var(--side-w);
+  }
+}
+
+@media (max-width: 900px) {
+  .with-rail {
+    padding-bottom: calc(var(--dock-h) + var(--sp-4));
+  }
   .wrap {
     padding: 0 var(--sp-4);
   }

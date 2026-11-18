@@ -60,9 +60,9 @@ function unavailable(episode: EpisodeCard): boolean {
 }
 .ep[aria-current='true'] {
   border-color: var(--brand);
-  background: var(--brand-weak);
-  color: var(--brand-strong);
-  font-weight: 600;
+  background: var(--brand);
+  color: var(--brand-ink);
+  font-weight: 700;
 }
 .ep:disabled {
   color: var(--ink-300);

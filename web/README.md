@@ -2,6 +2,8 @@
 
 Vue 3 + TypeScript + Vite 消费端网站，独立 Nginx 部署。包含最近发布、搜索分类、本设备继续观看、作品详情、选集、原生视频控件与凭证刷新。
 
+观众端外壳是深色画布：宽屏左侧导航，窄屏顶栏和底部两格。主操作是薄荷绿，搜索留在首页。已构建的 Docker 镜像不会随源码保存自动更新。
+
 [项目首页](../README.md) · [开发说明](../docs/development.md) · [已知限制](../docs/known-limitations.md) · [协作约束](AGENTS.md)
 
 从仓库根执行：

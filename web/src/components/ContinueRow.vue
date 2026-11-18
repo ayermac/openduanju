@@ -58,36 +58,34 @@ function clock(positionSeconds: number): string {
   scrollbar-width: thin;
 }
 .card {
-  flex: 0 0 300px;
+  flex: 0 0 320px;
   scroll-snap-align: start;
-  position: relative;
-  background: var(--surface);
+  display: flex;
+  align-items: stretch;
+  background: #ffffff10;
+  border: 1px solid var(--border);
   border-radius: var(--r-lg);
-  box-shadow: var(--shadow-1);
   min-height: 76px;
 }
 .card-link {
   display: flex;
   align-items: center;
   gap: var(--sp-3);
-  padding: var(--sp-2) var(--sp-3) var(--sp-2) var(--sp-2);
+  flex: 1;
+  min-width: 0;
+  padding: var(--sp-2) var(--sp-2) var(--sp-2) var(--sp-2);
   min-height: 76px;
 }
-.card-link:hover {
-  box-shadow: var(--shadow-2);
-}
 .remove {
-  position: absolute;
-  top: 6px;
-  right: 8px;
-  width: 24px;
-  height: 24px;
-  border-radius: var(--r-sm);
-  border: 1px solid var(--line-300);
-  background: var(--surface);
-  color: var(--ink-600);
+  flex: none;
+  width: var(--touch);
+  min-height: var(--touch);
+  margin: 8px 8px 8px 0;
+  border-radius: var(--r-md);
+  border: 1px solid var(--border-strong);
+  background: #111214;
+  color: var(--ink-700);
   font-size: var(--fs-12);
-  line-height: 1;
 }
 .index {
   flex: none;
@@ -101,7 +99,7 @@ function clock(positionSeconds: number): string {
   font-weight: 700;
   font-variant-numeric: tabular-nums;
   background:
-    radial-gradient(120% 90% at 20% 10%, rgba(255, 255, 255, 0.2), transparent 60%), #41506b;
+    radial-gradient(120% 90% at 20% 10%, rgba(255, 255, 255, 0.22), transparent 60%), #12343a;
 }
 .meta {
   min-width: 0;
@@ -124,9 +122,10 @@ function clock(positionSeconds: number): string {
   margin-left: auto;
   padding: 2px var(--sp-2);
   border-radius: var(--r-pill);
-  background: var(--brand-weak);
-  color: var(--brand-strong);
+  background: var(--brand);
+  color: var(--brand-ink);
   font-size: var(--fs-12);
+  font-weight: 700;
   white-space: nowrap;
 }
 

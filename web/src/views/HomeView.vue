@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import ContinueRow from '@/components/ContinueRow.vue'
 import SeriesCard from '@/components/SeriesCard.vue'
 import SiteHeader from '@/components/SiteHeader.vue'
@@ -24,6 +24,7 @@ const total = ref(0)
 const page = ref(1)
 const categories = ref<string[]>([])
 const keyword = ref('')
+const query = ref('')
 const category = ref('')
 const loading = ref(false)
 const error = ref('')
@@ -89,6 +90,14 @@ async function loadCategories() {
   }
 }
 
+watch(keyword, (next) => {
+  if (next !== query.value) query.value = next
+})
+
+function submitSearch() {
+  onSearch(query.value.trim())
+}
+
 function onSearch(value: string) {
   // The form is the only submit path; an unchanged query that is still in
   // flight does not need another request, while a changed query may supersede it.
@@ -136,34 +145,53 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="home">
-    <SiteHeader :keyword="keyword" @search="onSearch" />
-
-    <nav v-if="categories.length" class="tabs" aria-label="分类">
-      <div class="wrap">
-        <button
-          class="tab"
-          type="button"
-          :aria-selected="category === ''"
-          @click="category && pickCategory(category)"
-        >
-          全部
-        </button>
-        <button
-          v-for="item in categories"
-          :key="item"
-          class="tab"
-          type="button"
-          :aria-selected="category === item"
-          @click="pickCategory(item)"
-        >
-          {{ item }}
-        </button>
-      </div>
-    </nav>
+  <div class="home with-rail">
+    <SiteHeader />
 
     <main class="wrap">
-      <section v-if="history.length" class="section" aria-labelledby="continue-heading">
+      <section class="hero" aria-labelledby="hero-heading">
+        <p class="eyebrow">映刻</p>
+        <h1 id="hero-heading">今天看哪一部</h1>
+        <p class="hero-sub">已发布短剧，打开就能看</p>
+        <form class="prompt" role="search" @submit.prevent="submitSearch">
+          <label class="visually-hidden" for="site-search">搜索片名或简介</label>
+          <input
+            id="site-search"
+            v-model="query"
+            type="search"
+            placeholder="搜索片名或简介"
+            autocomplete="off"
+          />
+          <button type="submit">搜索</button>
+        </form>
+        <nav v-if="categories.length" class="tabs" aria-label="分类">
+          <button
+            class="tab"
+            type="button"
+            :aria-selected="category === ''"
+            @click="category && pickCategory(category)"
+          >
+            全部
+          </button>
+          <button
+            v-for="item in categories"
+            :key="item"
+            class="tab"
+            type="button"
+            :aria-selected="category === item"
+            @click="pickCategory(item)"
+          >
+            {{ item }}
+          </button>
+        </nav>
+      </section>
+
+      <section
+        v-if="history.length"
+        id="continue"
+        class="section"
+        aria-labelledby="continue-heading"
+      >
         <div class="section-head">
           <h2 id="continue-heading">继续观看</h2>
           <div class="history-tools">
@@ -224,42 +252,85 @@ onMounted(() => {
 </template>
 
 <style scoped>
-.tabs {
-  display: flex;
-  overflow-x: auto;
-  scrollbar-width: none;
-  border-bottom: 1px solid var(--border);
-  background: var(--surface);
+.hero {
+  padding: var(--sp-7) 0 var(--sp-2);
+  text-align: center;
 }
-.tabs::-webkit-scrollbar {
-  display: none;
+.eyebrow {
+  color: var(--brand);
+  font-size: var(--fs-12);
+  font-weight: 700;
+  letter-spacing: 0.12em;
 }
-.tabs .wrap {
-  display: flex;
-  gap: var(--sp-1);
+.hero h1 {
+  margin-top: var(--sp-2);
+  font-size: var(--fs-34);
+  letter-spacing: -0.4px;
 }
-.tab {
-  position: relative;
-  padding: var(--sp-3);
-  border: 0;
-  background: none;
+.hero-sub {
+  margin-top: var(--sp-2);
   color: var(--ink-600);
   font-size: var(--fs-14);
+}
+.prompt {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  max-width: 760px;
+  margin: var(--sp-5) auto 0;
+  padding: 8px;
+  border: 1px solid var(--border-strong);
+  border-radius: 18px;
+  background: #0c1418d6;
+  box-shadow: var(--shadow-2);
+}
+.prompt input {
+  flex: 1;
+  min-width: 0;
+  height: var(--touch);
+  padding: 0 var(--sp-4);
+  border: 0;
+  background: transparent;
+  color: var(--ink-900);
+  font-size: var(--fs-15, 15px);
+}
+.prompt input::placeholder {
+  color: var(--ink-400);
+}
+.prompt input:focus {
+  outline: none;
+}
+.prompt button {
+  height: var(--touch);
+  padding: 0 var(--sp-5);
+  border: 0;
+  border-radius: var(--r-pill);
+  background: var(--brand);
+  color: var(--brand-ink);
+  font-weight: 700;
+}
+.tabs {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: var(--sp-2);
+  max-width: 760px;
+  margin: var(--sp-4) auto 0;
+}
+.tab {
+  min-height: 36px;
+  padding: 0 var(--sp-4);
+  border: 0;
+  border-radius: var(--r-pill);
+  background: #ffffff12;
+  color: var(--ink-700);
+  font-size: var(--fs-13);
   white-space: nowrap;
 }
 .tab[aria-selected='true'] {
-  color: var(--ink-900);
-  font-weight: 600;
-}
-.tab[aria-selected='true']::after {
-  content: '';
-  position: absolute;
-  left: var(--sp-3);
-  right: var(--sp-3);
-  bottom: -1px;
-  height: 2px;
-  border-radius: 2px;
   background: var(--brand);
+  color: var(--brand-ink);
+  font-weight: 700;
 }
 .section {
   padding: var(--sp-6) 0 0;
@@ -280,16 +351,16 @@ onMounted(() => {
 }
 .clear {
   margin-left: auto;
-  height: 30px;
+  min-height: var(--touch);
   padding: 0 var(--sp-3);
   border: 1px solid var(--border-strong);
-  border-radius: var(--r-sm);
-  background: var(--surface);
-  color: var(--ink-600);
+  border-radius: var(--r-pill);
+  background: #ffffff12;
+  color: var(--ink-700);
   font-size: var(--fs-13);
 }
 .clear:hover {
-  border-color: var(--ink-300);
+  border-color: var(--ink-400);
   color: var(--ink-900);
 }
 .grid {
@@ -303,13 +374,14 @@ onMounted(() => {
   padding: var(--sp-5) 0 var(--sp-2);
 }
 .more-btn {
-  height: 38px;
+  min-height: var(--touch);
   padding: 0 var(--sp-5);
-  border: 1px solid var(--border-strong);
+  border: 0;
   border-radius: var(--r-pill);
-  background: var(--surface);
-  color: var(--ink-700);
+  background: var(--brand);
+  color: var(--brand-ink);
   font-size: var(--fs-14);
+  font-weight: 700;
 }
 .more-btn:disabled {
   color: var(--ink-400);
@@ -324,10 +396,19 @@ onMounted(() => {
   font-size: var(--fs-12);
 }
 
-@media (max-width: 720px) {
+@media (max-width: 900px) {
+  .hero {
+    padding-top: var(--sp-5);
+  }
+  .hero h1 {
+    font-size: var(--fs-28);
+  }
   .grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: var(--sp-3);
+  }
+  .tab {
+    min-height: var(--touch);
   }
   .section {
     padding: var(--sp-5) 0 0;
@@ -335,6 +416,12 @@ onMounted(() => {
   .site-foot {
     flex-direction: column;
     padding: var(--sp-6) var(--sp-4) var(--sp-5);
+  }
+}
+
+@media (max-width: 560px) {
+  .grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 </style>

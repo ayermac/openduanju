@@ -39,23 +39,22 @@ const episodes = computed(() =>
 <style scoped>
 .poster {
   display: block;
+  color: var(--ink-900);
   border-radius: var(--r-md);
   overflow: hidden;
-  background: var(--surface);
-  box-shadow: var(--shadow-1);
-  transition:
-    transform 160ms ease,
-    box-shadow 160ms ease;
+  background: transparent;
+  transition: transform 160ms ease;
 }
 .poster:hover,
 .poster:focus-visible {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-2);
+  transform: translateY(-3px);
 }
 .frame {
   display: block;
   position: relative;
-  aspect-ratio: 2 / 3;
+  aspect-ratio: 3 / 4;
+  border-radius: var(--r-md);
+  overflow: hidden;
   background: var(--surface-3);
 }
 .frame img {
@@ -80,17 +79,16 @@ const episodes = computed(() =>
 .badge {
   position: absolute;
   left: var(--sp-2);
-  bottom: var(--sp-2);
+  top: var(--sp-2);
   padding: 2px var(--sp-2);
   border-radius: var(--r-sm);
-  background: rgba(20, 22, 28, 0.72);
+  background: #111214cc;
   color: #fff;
   font-size: var(--fs-11);
-  backdrop-filter: blur(4px);
 }
 .body {
   display: block;
-  padding: var(--sp-2) var(--sp-3) var(--sp-3);
+  padding: var(--sp-2) 2px 0;
 }
 .title {
   display: -webkit-box;

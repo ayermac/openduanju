@@ -1,29 +1,32 @@
-/* 映刻 C 端设计令牌。数值与 .doc/ui/design-system.md 一致；admin 侧同名文件保持同一组值。
-   页面样式只允许引用这里的变量，不再写死颜色、间距与圆角。 */
+/* 映刻 C 端设计令牌。2026-11-18 按 kanju42.com 净室抓取的访客观感取值：
+   深色底、薄荷绿主操作、细白字。不使用该站名称、文案或图片。
+   admin 保持自己的浅色令牌，不跟这里同步。页面样式只引用这些变量。 */
 :root {
-  --brand: #e23a4e;
-  --brand-strong: #c22a3d;
-  --brand-weak: #fdecef;
-  --ink-900: #14161c;
-  --ink-700: #333a45;
-  --ink-600: #5a6270;
-  --ink-400: #8b93a1;
-  --ink-300: #b3bac5;
-  --surface: #ffffff;
-  --surface-2: #f5f6f8;
-  --surface-3: #eef0f3;
-  --border: #e8eaee;
-  --border-strong: #d6dae1;
-  --ok: #1f8a52;
-  --ok-weak: #e8f5ee;
-  --warn: #a86612;
-  --warn-weak: #fdf3e3;
-  --danger: #c22a3d;
-  --danger-weak: #fdecef;
-  --focus: #1e6ff2;
+  --brand: #16e09d;
+  --brand-strong: #0fbf84;
+  --brand-ink: #04261c;
+  --brand-weak: #16e09d1f;
+  --ink-900: #ffffff;
+  --ink-700: #ffffffdb;
+  --ink-600: #ffffffa3;
+  --ink-400: #ffffff80;
+  --ink-300: #ffffff59;
+  --surface: #111214;
+  --surface-2: #070d10;
+  --surface-3: #1c1e24;
+  --border: #ffffff14;
+  --border-strong: #ffffff24;
+  --ok: #16e09d;
+  --ok-weak: #16e09d1f;
+  --warn: #fbbf24;
+  --warn-weak: #fbbf241f;
+  --danger: #ff8d8d;
+  --danger-weak: #ff5a5a24;
+  --focus: #16e09d;
 
   --font-cn:
-    'Noto Sans SC', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', system-ui, sans-serif;
+    Inter, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', ui-sans-serif, system-ui,
+    sans-serif;
   --fs-11: 11px;
   --fs-12: 12px;
   --fs-13: 13px;
@@ -46,12 +49,14 @@
   --sp-8: 64px;
   --r-sm: 6px;
   --r-md: 10px;
-  --r-lg: 14px;
+  --r-lg: 16px;
   --r-pill: 999px;
-  --shadow-1: 0 1px 2px rgba(20, 22, 28, 0.06);
-  --shadow-2: 0 6px 24px rgba(20, 22, 28, 0.1);
-  --shadow-3: 0 18px 48px rgba(20, 22, 28, 0.16);
-  --w-page: 1200px;
-  --head-h: 64px;
+  --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.28);
+  --shadow-2: 0 10px 32px rgba(0, 0, 0, 0.35);
+  --shadow-3: 0 18px 48px rgba(0, 0, 0, 0.45);
+  --w-page: 1280px;
+  --side-w: 248px;
+  --head-h: 60px;
+  --dock-h: 64px;
   --touch: 44px;
 }

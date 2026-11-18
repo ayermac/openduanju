@@ -98,8 +98,8 @@ p {
 .btn.primary {
   background: var(--brand);
   border-color: var(--brand);
-  color: #fff;
-  font-weight: 600;
+  color: var(--brand-ink);
+  font-weight: 700;
 }
 .skeletons {
   display: grid;
@@ -109,7 +109,7 @@ p {
 .skeleton {
   aspect-ratio: 2 / 3;
   border-radius: var(--r-md);
-  background: linear-gradient(90deg, var(--surface-3) 25%, #f7f8fa 37%, var(--surface-3) 63%);
+  background: linear-gradient(90deg, var(--surface-3) 25%, #2a2d34 37%, var(--surface-3) 63%);
   background-size: 400% 100%;
   animation: shimmer 1.2s ease infinite;
 }

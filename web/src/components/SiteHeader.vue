@@ -1,169 +1,172 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue'
 import { RouterLink } from 'vue-router'
 
-// The header owns the search field; the page decides what a search means.
-const props = defineProps<{ keyword?: string; back?: boolean }>()
-const emit = defineEmits<{ search: [value: string] }>()
-const value = ref(props.keyword ?? '')
-
-watch(
-  () => props.keyword,
-  (next) => {
-    if ((next ?? '') !== value.value) value.value = next ?? ''
-  },
-)
-
-function submit() {
-  emit('search', value.value.trim())
-}
+// Chrome only. Search lives in the home canvas, the same place a visitor looks first.
+defineProps<{ back?: boolean }>()
 </script>
 
 <template>
-  <header class="site-head">
-    <div class="wrap inner">
+  <div class="chrome">
+    <aside class="rail">
+      <RouterLink class="logo" to="/" aria-label="映刻首页">
+        <span class="mark" aria-hidden="true">映</span>
+        <span class="brand">
+          <span class="name">映刻</span>
+          <small>已发布短剧</small>
+        </span>
+      </RouterLink>
+      <nav class="rail-nav" aria-label="主导航">
+        <RouterLink class="rail-link" to="/">首页</RouterLink>
+        <a class="rail-link" href="/#continue">继续观看</a>
+      </nav>
+      <p class="rail-note">免费观看已审核发布的内容。进度只留在这台设备。</p>
+    </aside>
+
+    <header class="top">
       <RouterLink v-if="back" class="back" to="/" aria-label="返回首页">← 首页</RouterLink>
       <RouterLink v-else class="logo" to="/" aria-label="映刻首页">
         <span class="mark" aria-hidden="true">映</span>
         <span class="name">映刻</span>
-        <small>OpenDuanju</small>
       </RouterLink>
-      <form v-if="!back" class="search" role="search" @submit.prevent="submit">
-        <label class="visually-hidden" for="site-search">搜索片名或简介</label>
-        <input
-          id="site-search"
-          v-model="value"
-          type="search"
-          placeholder="搜索片名或简介"
-          autocomplete="off"
-        />
-        <button type="submit">搜索</button>
-      </form>
-      <div v-else class="title-holder" />
       <span class="head-note">已发布内容免费观看</span>
-    </div>
-  </header>
+    </header>
+
+    <nav class="dock" aria-label="底部导航">
+      <RouterLink to="/">首页</RouterLink>
+      <a href="/#continue">历史</a>
+    </nav>
+  </div>
 </template>
 
 <style scoped>
-.site-head {
-  position: sticky;
-  top: 0;
-  z-index: 20;
-  background: rgba(255, 255, 255, 0.94);
-  backdrop-filter: saturate(160%) blur(12px);
-  border-bottom: 1px solid var(--border);
-}
-.inner {
+.rail {
+  position: fixed;
+  inset: 0 auto 0 0;
+  z-index: 30;
+  width: var(--side-w);
   display: flex;
-  align-items: center;
+  flex-direction: column;
   gap: var(--sp-5);
-  height: var(--head-h);
+  padding: var(--sp-5) var(--sp-4);
+  background: #16171c;
+  border-right: 1px solid var(--border);
 }
 .logo {
   display: inline-flex;
   align-items: center;
-  gap: var(--sp-2);
-  font-size: var(--fs-18);
-  font-weight: 700;
-  letter-spacing: 0.5px;
-  white-space: nowrap;
+  gap: var(--sp-3);
+  min-height: var(--touch);
 }
 .mark {
-  width: 26px;
-  height: 26px;
-  border-radius: 8px;
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
   display: grid;
   place-items: center;
-  color: #fff;
-  font-size: 13px;
+  color: var(--brand-ink);
+  font-size: 14px;
   font-weight: 800;
-  background: linear-gradient(135deg, var(--brand), #ff7a5c);
+  background: var(--brand);
 }
-.logo small {
+.brand {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.15;
+}
+.name {
+  font-size: var(--fs-16);
+  font-weight: 700;
+}
+.logo small,
+.rail-note,
+.head-note {
   color: var(--ink-400);
-  font-size: var(--fs-11);
+  font-size: var(--fs-12);
   font-weight: 500;
-  letter-spacing: 1px;
 }
-.back {
-  display: inline-flex;
+.rail-nav {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+}
+.rail-link {
+  display: flex;
   align-items: center;
-  height: 36px;
+  min-height: var(--touch);
   padding: 0 var(--sp-3);
   border-radius: var(--r-md);
-  color: var(--ink-600);
-  font-size: var(--fs-14);
-  white-space: nowrap;
+  color: var(--ink-700);
+  background: #ffffff0d;
 }
-.back:hover {
-  background: var(--surface-2);
-  color: var(--ink-900);
-}
-.search {
-  display: flex;
-  flex: 1;
-  max-width: 520px;
-}
-.search input {
-  flex: 1;
-  min-width: 0;
-  height: 40px;
-  padding: 0 var(--sp-4);
-  border: 1px solid var(--border-strong);
-  border-right: 0;
-  border-radius: var(--r-pill) 0 0 var(--r-pill);
-  background: var(--surface-2);
-  color: var(--ink-900);
-  font-size: var(--fs-14);
-}
-.search input::placeholder {
-  color: var(--ink-400);
-}
-.search input:focus {
-  background: var(--surface);
-}
-.search button {
-  height: 40px;
-  padding: 0 var(--sp-5);
-  border: 0;
-  border-radius: 0 var(--r-pill) var(--r-pill) 0;
+.rail-link.router-link-exact-active {
   background: var(--brand);
-  color: #fff;
-  font-weight: 600;
+  color: var(--brand-ink);
+  font-weight: 700;
 }
-.search button:hover {
-  background: var(--brand-strong);
+.rail-note {
+  margin-top: auto;
+  line-height: 1.5;
 }
-.title-holder {
-  flex: 1;
-}
-.head-note {
-  margin-left: auto;
-  color: var(--ink-600);
-  font-size: var(--fs-13);
-  white-space: nowrap;
+.top,
+.dock {
+  display: none;
 }
 
-@media (max-width: 720px) {
-  .inner {
-    height: 56px;
-    gap: var(--sp-3);
-  }
-  .logo small,
-  .head-note {
+@media (max-width: 900px) {
+  .rail {
     display: none;
   }
-  .search {
-    max-width: none;
+  .top {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    display: flex;
+    align-items: center;
+    gap: var(--sp-3);
+    height: var(--head-h);
+    padding: 0 var(--sp-4);
+    background: #111214e6;
+    backdrop-filter: blur(16px);
+    border-bottom: 1px solid var(--border);
   }
-  .search input {
-    height: 44px;
+  .head-note {
+    margin-left: auto;
   }
-  .search button {
-    min-width: 44px;
-    height: 44px;
-    padding: 0 12px;
+  .back {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--touch);
+    padding: 0 var(--sp-3);
+    border-radius: var(--r-pill);
+    background: #ffffff12;
+    color: var(--ink-700);
+  }
+  .dock {
+    position: fixed;
+    left: 12px;
+    right: 12px;
+    bottom: 10px;
+    z-index: 30;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    height: var(--dock-h);
+    padding: 6px;
+    border-radius: 18px;
+    background: #111214f0;
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow-3);
+  }
+  .dock a {
+    display: grid;
+    place-items: center;
+    border-radius: 14px;
+    color: var(--ink-600);
+    font-size: var(--fs-13);
+    font-weight: 600;
+  }
+  .dock a.router-link-exact-active {
+    background: var(--brand);
+    color: var(--brand-ink);
   }
 }
 </style>
